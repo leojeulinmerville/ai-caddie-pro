@@ -1,38 +1,44 @@
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, BarChart3, History, Settings, Trophy, TrendingUp, Calendar, Target } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useI18n } from '@/hooks/useI18n';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, BarChart3, Calendar, Settings, Filter } from 'lucide-react';
 
-interface User {
+interface ClubStats {
+  club: string;
+  count: number;
+  average: number;
+  min: number;
+  max: number;
+  recent20: boolean;
+}
+
+interface Round {
   id: string;
-  email: string;
-  displayName: string;
+  started_at: string;
+  ended_at?: string;
+  total_strokes: number;
+  selection: string;
+  status: string;
 }
 
-interface PlayerData {
-  firstName: string;
-  lastName: string;
-  handicap: number;
-  preferredUnits: "m" | "yd";
-  language: "fr" | "en";
-}
-
-interface StatsHistorySettingsProps {
-  user: User;
-  playerProfile: PlayerData;
-  onBack: () => void;
-}
-
-const StatsHistorySettings = ({ user, playerProfile, onBack }: StatsHistorySettingsProps) => {
-  const [statsFilter, setStatsFilter] = useState<'7d' | '30d' | 'all'>('30d');
-  const [language, setLanguage] = useState<'fr' | 'en'>(playerProfile.language);
-  const [units, setUnits] = useState<'m' | 'yd'>(playerProfile.preferredUnits);
-  const [gpsThreshold, setGpsThreshold] = useState('15');
+export default function StatsHistorySettings() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { t, language, setLanguage, units, setUnits } = useI18n();
+  const [activeTab, setActiveTab] = useState('stats');
+  const [clubStats, setClubStats] = useState<ClubStats[]>([]);
+  const [rounds, setRounds] = useState<Round[]>([]);
+  const [filter, setFilter] = useState<'7d' | '30d' | 'all'>('all');
+  const [loading, setLoading] = useState(true);
 
   // Mock data for demonstration
   const clubStats = [

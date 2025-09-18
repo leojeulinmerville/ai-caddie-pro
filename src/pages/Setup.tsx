@@ -1,50 +1,31 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft, Settings, Play, MapPin } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-
-interface User {
-  id: string;
-  email: string;
-  displayName: string;
-}
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Settings, Play } from 'lucide-react';
 
 interface Course {
   id: string;
   name: string;
   holes: number;
-  pars: any; // Using any to handle Json type from Supabase
-  handicaps: any; // Using any to handle Json type from Supabase
+  pars: number[];
+  handicaps: number[];
   default_tee: string;
 }
 
-interface SetupProps {
-  user: User;
-  onBack: () => void;
-  onStartGame: (setupData: {
-    courseId: string;
-    selection: 'front' | 'back' | 'full';
-    teeColor: string;
-  }) => void;
-}
-
-const Setup = ({ user, onBack, onStartGame }: SetupProps) => {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [selection, setSelection] = useState<'front' | 'back' | 'full'>('full');
-  const [teeColor, setTeeColor] = useState<string>('Jaune');
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editedPars, setEditedPars] = useState<number[]>([]);
-  const [editedHandicaps, setEditedHandicaps] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function Setup() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [selection, setSelection] = useState<'front9' | 'back9' | 'full'>('full');
+  const [teeColor, setTeeColor] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadCourses();

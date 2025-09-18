@@ -1,56 +1,56 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Mic, MicOff, Undo, Flag, Clock, MapPin, MessageCircle, MoreVertical } from "lucide-react";
-import { Scorecard } from "@/components/game/Scorecard";
-import { CoachOverlay } from "@/components/coach/CoachOverlay";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useGameLogic } from "@/hooks/useGameLogic";
-import { useI18n } from "@/hooks/useI18n";
-import { formatDistance } from "@/utils/units";
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useGameLogic } from '@/hooks/useGameLogic';
+import { useI18n } from '@/hooks/useI18n';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { GameInterface } from '@/components/game/GameInterface';
+import { Scorecard } from '@/components/game/Scorecard';
+import { CoachOverlay } from '@/components/coach/CoachOverlay';
+import { ArrowLeft, Menu, Clock, Headphones, Satellite, SatelliteOff } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-interface User {
+interface Round {
   id: string;
-  email: string;
-  displayName: string;
+  course_id: string;
+  selection: 'front9' | 'back9' | 'full';
+  tee_color: string;
+  status: string;
+  started_at: string;
+  total_strokes: number;
 }
 
-interface PlayerData {
-  firstName: string;
-  lastName: string;
-  handicap: number;
-  preferredUnits: "m" | "yd";
-  language: "fr" | "en";
-}
-
-interface PlayProps {
-  user: User;
-  playerProfile: PlayerData;
-  roundId: string;
-  onBack: () => void;
-  onQuitGame: () => void;
-}
-
-const Play = ({ user, playerProfile, roundId, onBack, onQuitGame }: PlayProps) => {
-  const [coachOpen, setCoachOpen] = useState(false);
-  const [gameStartTime] = useState(new Date());
-  const [elapsedTime, setElapsedTime] = useState('00:00');
+export default function Play() {
+  const { roundId } = useParams<{ roundId: string }>();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { t } = useI18n();
-  
-  const {
-    currentHole,
-    totalStrokes,
-    strokes,
-    isRecording,
-    gpsStatus,
-    addStroke,
-    undoStroke,
-    finishHole,
-    toggleVoiceRecording
-  } = useGameLogic({ roundId });
+  const [round, setRound] = useState<Round | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [coachOpen, setCoachOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('game');
+  const [elapsedTime, setElapsedTime] = useState('00:00');
+
+  const gameLogic = useGameLogic({ 
+    roundId: roundId || '',
+    accuracyThreshold: 15 
+  });
 
   useEffect(() => {
+    if (roundId) {
+      loadRound();
+    }
+  }, [roundId]);
     // Update elapsed time every minute
     const timer = setInterval(() => {
       const now = new Date();
