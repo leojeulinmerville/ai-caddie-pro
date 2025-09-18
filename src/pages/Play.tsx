@@ -47,14 +47,21 @@ export default function Play() {
   });
 
   useEffect(() => {
-    if (roundId) {
-      loadRound();
-    } else {
+    console.log('Play useEffect triggered:', { roundId, user: !!user });
+    
+    if (!roundId) {
       // No roundId provided, redirect to dashboard
       setLoading(false);
       navigate('/dashboard');
+      return;
     }
-  }, [roundId]);
+
+    if (user) {
+      // Both roundId and user are available, load the round
+      loadRound();
+    }
+    // If user is not available yet, keep loading and wait for it
+  }, [roundId, user]);
 
   // Timer effect
   useEffect(() => {
@@ -73,8 +80,10 @@ export default function Play() {
   }, [round]);
 
   const loadRound = async () => {
+    console.log('loadRound called:', { roundId, user: !!user });
+    
     if (!roundId || !user) {
-      setLoading(false);
+      console.log('loadRound: missing roundId or user, returning');
       return;
     }
 
@@ -162,7 +171,8 @@ export default function Play() {
     );
   }
 
-  if (!round) {
+  // Only show "not found" if user is loaded but round is null
+  if (!loading && user && !round) {
     return (
       <div className="p-6 text-center">
         <p className="text-hs-ink mb-4">Partie introuvable</p>
