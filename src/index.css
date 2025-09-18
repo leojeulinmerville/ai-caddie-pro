@@ -6,132 +6,132 @@
 
 @layer base {
   :root {
-    /* Golf-inspired color palette */
-    --background: 0 0% 99%;
-    --foreground: 140 15% 15%;
+    /* HighSwing.ai New Color Palette */
+    --background: 82 32% 95%; /* Off-white #F4F7F1 */
+    --foreground: 0 0% 18%; /* Anthracite #2E2E2E */
 
-    --card: 0 0% 100%;
-    --card-foreground: 140 15% 15%;
+    --card: 82 32% 95%; /* Off-white #F4F7F1 */
+    --card-foreground: 0 0% 18%; /* Anthracite #2E2E2E */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 140 15% 15%;
+    --popover: 82 32% 95%; /* Off-white #F4F7F1 */
+    --popover-foreground: 0 0% 18%; /* Anthracite #2E2E2E */
 
-    /* Golf green as primary - sophisticated and elegant */
-    --primary: 140 45% 18%;
-    --primary-foreground: 0 0% 98%;
-    --primary-glow: 140 35% 25%;
+    /* Primary - Light Green #7BB661 */
+    --primary: 99 25% 55%; /* #7BB661 */
+    --primary-foreground: 82 32% 95%; /* Off-white for contrast */
+    --primary-glow: 99 35% 45%; /* Slightly darker for glow */
 
-    /* Soft secondary tones */
-    --secondary: 120 15% 94%;
-    --secondary-foreground: 140 25% 20%;
+    /* Secondary - Medium Green #4C8531 */
+    --secondary: 99 45% 35%; /* #4C8531 */
+    --secondary-foreground: 82 32% 95%; /* Off-white */
 
-    /* Muted tones for subtle elements */
-    --muted: 120 10% 96%;
-    --muted-foreground: 140 10% 45%;
+    /* Muted - Light Beige #D9E4C8 */
+    --muted: 82 25% 85%; /* #D9E4C8 */
+    --muted-foreground: 99 55% 17%; /* Dark Green #26552E */
 
-    /* Accent for highlights and interactive elements */
-    --accent: 145 40% 22%;
-    --accent-foreground: 0 0% 98%;
+    /* Accent - Dark Green #26552E */
+    --accent: 99 55% 17%; /* #26552E */
+    --accent-foreground: 82 32% 95%; /* Off-white */
 
-    /* Success state for golf achievements */
-    --success: 120 60% 35%;
-    --success-foreground: 0 0% 98%;
+    /* Success state */
+    --success: 99 25% 55%; /* Same as primary */
+    --success-foreground: 82 32% 95%;
 
-    /* Warning for golf hazards */
+    /* Warning */
     --warning: 45 90% 55%;
     --warning-foreground: 45 15% 15%;
 
     --destructive: 0 75% 55%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 82 32% 95%;
 
-    /* Subtle borders and inputs */
-    --border: 120 15% 90%;
-    --input: 120 15% 92%;
-    --ring: 140 45% 18%;
+    /* Borders - Sand #C9B58E */
+    --border: 42 25% 67%; /* #C9B58E */
+    --input: 42 25% 67%; /* #C9B58E */
+    --ring: 99 25% 55%; /* Primary green */
 
     --radius: 0.75rem;
 
-    /* Golf-specific gradients */
-    --gradient-fairway: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
-    --gradient-green: linear-gradient(145deg, hsl(140 50% 20%), hsl(140 35% 15%));
+    /* HighSwing.ai specific gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(99 25% 55%), hsl(99 45% 35%)); /* Light to medium green */
+    --gradient-subtle: linear-gradient(180deg, hsl(82 32% 95%), hsl(82 25% 85%)); /* Off-white to beige */
+    --gradient-green: linear-gradient(145deg, hsl(99 25% 55%), hsl(99 55% 17%)); /* Light to dark green */
 
-    /* Shadows for depth */
-    --shadow-golf: 0 4px 20px -4px hsl(var(--primary) / 0.15);
-    --shadow-card: 0 2px 8px -2px hsl(140 15% 15% / 0.08);
-    --shadow-glow: 0 0 30px hsl(var(--primary-glow) / 0.3);
+    /* Shadows with green tints */
+    --shadow-golf: 0 4px 20px -4px hsl(99 25% 55% / 0.15);
+    --shadow-card: 0 2px 8px -2px hsl(99 55% 17% / 0.08);
+    --shadow-glow: 0 0 30px hsl(99 35% 45% / 0.3);
 
     /* Smooth transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     /* Sidebar variables */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 82 32% 95%; /* Off-white */
+    --sidebar-foreground: 0 0% 18%; /* Anthracite */
+    --sidebar-primary: 99 25% 55%; /* Light Green */
+    --sidebar-primary-foreground: 82 32% 95%; /* Off-white */
+    --sidebar-accent: 82 25% 85%; /* Light Beige */
+    --sidebar-accent-foreground: 99 55% 17%; /* Dark Green */
+    --sidebar-border: 42 25% 67%; /* Sand */
+    --sidebar-ring: 99 25% 55%; /* Light Green */
   }
 
   .dark {
-    /* Dark mode golf theme */
-    --background: 140 20% 8%;
-    --foreground: 120 15% 92%;
+    /* HighSwing.ai Dark Mode */
+    --background: 99 55% 8%; /* Dark Green background */
+    --foreground: 82 32% 95%; /* Off-white text */
 
-    --card: 140 20% 10%;
-    --card-foreground: 120 15% 92%;
+    --card: 99 55% 10%; /* Slightly lighter dark green */
+    --card-foreground: 82 32% 95%; /* Off-white text */
 
-    --popover: 140 20% 10%;
-    --popover-foreground: 120 15% 92%;
+    --popover: 99 55% 10%;
+    --popover-foreground: 82 32% 95%;
 
-    --primary: 140 40% 85%;
-    --primary-foreground: 140 45% 18%;
-    --primary-glow: 140 35% 75%;
+    --primary: 99 25% 75%; /* Lighter green for dark mode */
+    --primary-foreground: 99 55% 17%; /* Dark green text */
+    --primary-glow: 99 35% 65%;
 
-    --secondary: 140 15% 15%;
-    --secondary-foreground: 120 15% 85%;
+    --secondary: 99 45% 25%; /* Medium green */
+    --secondary-foreground: 82 32% 95%;
 
-    --muted: 140 15% 12%;
-    --muted-foreground: 140 10% 65%;
+    --muted: 99 25% 15%; /* Dark muted green */
+    --muted-foreground: 82 25% 75%; /* Light beige */
 
-    --accent: 145 40% 75%;
-    --accent-foreground: 140 45% 18%;
+    --accent: 99 25% 75%; /* Light green accent */
+    --accent-foreground: 99 55% 17%; /* Dark green */
 
-    --success: 120 50% 75%;
-    --success-foreground: 140 45% 18%;
+    --success: 99 25% 75%;
+    --success-foreground: 99 55% 17%;
 
     --warning: 45 85% 65%;
     --warning-foreground: 45 20% 15%;
 
     --destructive: 0 65% 65%;
-    --destructive-foreground: 140 20% 8%;
+    --destructive-foreground: 99 55% 8%;
 
-    --border: 140 15% 18%;
-    --input: 140 15% 16%;
-    --ring: 140 40% 75%;
+    --border: 42 25% 35%; /* Darker sand */
+    --input: 42 25% 30%; /* Even darker sand */
+    --ring: 99 25% 75%; /* Light green */
 
     /* Dark mode gradients */
-    --gradient-fairway: linear-gradient(135deg, hsl(140 30% 25%), hsl(140 25% 20%));
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
-    --gradient-green: linear-gradient(145deg, hsl(140 35% 30%), hsl(140 30% 25%));
+    --gradient-primary: linear-gradient(135deg, hsl(99 25% 35%), hsl(99 45% 25%));
+    --gradient-subtle: linear-gradient(180deg, hsl(99 55% 8%), hsl(99 25% 15%));
+    --gradient-green: linear-gradient(145deg, hsl(99 25% 35%), hsl(99 55% 17%));
 
     /* Dark mode shadows */
     --shadow-golf: 0 4px 20px -4px hsl(0 0% 0% / 0.3);
     --shadow-card: 0 2px 8px -2px hsl(0 0% 0% / 0.2);
-    --shadow-glow: 0 0 30px hsl(var(--primary-glow) / 0.2);
+    --shadow-glow: 0 0 30px hsl(99 35% 45% / 0.2);
 
     /* Dark mode sidebar */
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 99 55% 10%;
+    --sidebar-foreground: 82 32% 95%;
+    --sidebar-primary: 99 25% 75%;
+    --sidebar-primary-foreground: 99 55% 17%;
+    --sidebar-accent: 99 25% 15%;
+    --sidebar-accent-foreground: 82 32% 95%;
+    --sidebar-border: 42 25% 35%;
+    --sidebar-ring: 99 25% 75%;
   }
 }
 
@@ -146,9 +146,9 @@
 }
 
 @layer components {
-  /* Golf-specific utility classes */
+  /* HighSwing.ai utility classes */
   .golf-gradient {
-    background: var(--gradient-fairway);
+    background: var(--gradient-primary);
   }
   
   .golf-card {
