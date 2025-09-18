@@ -242,6 +242,26 @@ export function CoachOverlay({
                 )}
               </div>
             </ScrollArea>
+
+            {/* Coach Suggestions */}
+            {currentMessages.length === 0 && (
+              <div className="p-3 border-t flex-shrink-0">
+                <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
+                <div className="flex flex-wrap gap-1">
+                  {["Quel club ?", "Stratégie vent", "Sortie bunker", "Putting"].map((suggestion, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => sendMessage(suggestion)}
+                      className="text-xs h-6 px-2"
+                    >
+                      {suggestion}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="rules" className="flex-1 flex flex-col mt-0 min-h-0 overflow-hidden">
@@ -281,27 +301,28 @@ export function CoachOverlay({
                 )}
               </div>
             </ScrollArea>
+
+            {/* Rules Suggestions */}
+            {currentMessages.length === 0 && (
+              <div className="p-3 border-t flex-shrink-0">
+                <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
+                <div className="flex flex-wrap gap-1">
+                  {["Balle dans l'eau", "Procédure drop", "Obstruction"].map((suggestion, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => sendMessage(suggestion)}
+                      className="text-xs h-6 px-2"
+                    >
+                      {suggestion}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </TabsContent>
 
-          {/* Quick Suggestions */}
-          {currentMessages.length === 0 && (
-            <div className="p-3 border-t flex-shrink-0">
-              <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
-              <div className="flex flex-wrap gap-1">
-                {suggestions.map((suggestion, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => sendMessage(suggestion)}
-                    className="text-xs h-6 px-2"
-                  >
-                    {suggestion}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Input Form */}
           <div className="p-3 border-t flex-shrink-0">
