@@ -1,144 +1,156 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Send, MessageCircle, BookOpen, Mic } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useVoiceRecording } from "@/hooks/useVoiceRecording";
-
-interface User {
-  id: string;
-  email: string;
-  displayName: string;
-}
-
-interface PlayerData {
-  firstName: string;
-  lastName: string;
-  handicap: number;
-  preferredUnits: "m" | "yd";
-  language: "fr" | "en";
-}
+import React, { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
+import { X, Send, Mic, MicOff, Bot, BookOpen } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useI18n } from '@/hooks/useI18n';
+import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   id: string;
-  type: "user" | "ai";
-  content: string;
+  text: string;
+  isBot: boolean;
   timestamp: Date;
+  mode: 'coach' | 'rules';
 }
 
 interface CoachOverlayProps {
-  user: User;
-  playerProfile: PlayerData;
-  currentHole: number;
-  totalStrokes: number;
-  lastStrokes?: Array<{ distance: number; club: string }>;
+  isOpen: boolean;
   onClose: () => void;
+  roundId?: string;
+  onVoiceMessage?: (text: string) => void;
+  isRecording?: boolean;
+  onToggleVoiceRecording?: () => void;
 }
 
 export function CoachOverlay({ 
-  user, 
-  playerProfile, 
-  currentHole, 
-  totalStrokes, 
-  lastStrokes = [], 
-  onClose 
+  isOpen, 
+  onClose, 
+  roundId,
+  onVoiceMessage,
+  isRecording = false,
+  onToggleVoiceRecording
 }: CoachOverlayProps) {
-  const [activeTab, setActiveTab] = useState("coach");
-  const [coachMessages, setCoachMessages] = useState<Message[]>([
-    {
-      id: "1",
-      type: "ai",
-      content: `Bonjour ${playerProfile.firstName} ! Trou ${currentHole}, vous avez joué ${totalStrokes} coups. Comment puis-je vous aider ?`,
-      timestamp: new Date()
-    }
-  ]);
-  const [rulesMessages, setRulesMessages] = useState<Message[]>([
-    {
-      id: "1", 
-      type: "ai",
-      content: "Bonjour ! Posez-moi vos questions sur les règles du golf.",
-      timestamp: new Date()
-    }
-  ]);
-  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'coach' | 'rules'>('coach');
+  const { t, language } = useI18n();
   const { toast } = useToast();
-  const { isRecording, isProcessing, startRecording, stopRecording } = useVoiceRecording();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const sendMessage = async (message: string) => {
-    if (!message.trim() || isLoading) return;
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  }, [messages]);
 
-    const currentMessages = activeTab === "coach" ? coachMessages : rulesMessages;
-    const setMessages = activeTab === "coach" ? setCoachMessages : setRulesMessages;
+  // Focus input when overlay opens
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isOpen]);
+
+  // Load existing messages when roundId changes
+  useEffect(() => {
+    if (roundId) {
+      loadMessages();
+    }
+  }, [roundId]);
+
+  const loadMessages = async () => {
+    if (!roundId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('round_id', roundId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      const loadedMessages: Message[] = data.map((msg: any) => [
+        {
+          id: `${msg.id}-user`,
+          text: msg.message,
+          isBot: false,
+          timestamp: new Date(msg.created_at),
+          mode: msg.mode
+        },
+        {
+          id: `${msg.id}-bot`,
+          text: msg.response,
+          isBot: true,
+          timestamp: new Date(msg.created_at),
+          mode: msg.mode
+        }
+      ]).flat();
+
+      setMessages(loadedMessages);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
+
+  const sendMessage = async (messageText: string, mode: 'coach' | 'rules' = activeTab) => {
+    if (!messageText.trim() || isLoading) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
-      type: "user",
-      content: message,
-      timestamp: new Date()
+      id: `user-${Date.now()}`,
+      text: messageText.trim(),
+      isBot: false,
+      timestamp: new Date(),
+      mode
     };
 
-    setMessages([...currentMessages, userMessage]);
-    setInputValue("");
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
     setIsLoading(true);
 
     try {
-      // Prepare context for coach
-      const context = activeTab === "coach" ? {
-        hole: currentHole,
-        strokes: totalStrokes,
-        handicap: playerProfile.handicap,
-        lastShots: lastStrokes.slice(-3)
-      } : null;
-
       const { data, error } = await supabase.functions.invoke('ai-coach', {
         body: {
-          message,
-          mode: activeTab,
-          language: playerProfile?.language || 'fr',
-          context
+          message: messageText.trim(),
+          roundId: roundId,
+          mode: mode,
+          language: language
         }
       });
 
       if (error) throw error;
 
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: "ai",
-        content: data.response,
-        timestamp: new Date()
+      const botMessage: Message = {
+        id: `bot-${Date.now()}`,
+        text: data.response,
+        isBot: true,
+        timestamp: new Date(),
+        mode
       };
 
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error: any) {
-      console.error('Error getting AI response:', error);
+      setMessages(prev => [...prev, botMessage]);
+
+    } catch (error) {
+      console.error('Error sending message:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible d'obtenir une réponse du coach IA",
-        variant: "destructive",
+        title: t('common.error'),
+        description: error.message || 'Erreur lors de l\'envoi du message',
+        variant: 'destructive'
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleVoiceRecording = async () => {
-    if (isRecording) {
-      const result = await stopRecording();
-      if (result?.text) {
-        await sendMessage(result.text);
-      }
-    } else {
-      await startRecording();
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    sendMessage(inputValue);
+    sendMessage(input);
   };
 
   const currentMessages = activeTab === "coach" ? coachMessages : rulesMessages;

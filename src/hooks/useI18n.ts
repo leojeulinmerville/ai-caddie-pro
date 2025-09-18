@@ -54,17 +54,29 @@ const translations: Translations = {
   'coach.placeholder': { fr: 'Demandez conseil...', en: 'Ask for advice...' },
   'coach.rulesPlaceholder': { fr: 'Question sur les règles...', en: 'Rules question...' },
 
-  // Settings
-  'settings.language': { fr: 'Langue', en: 'Language' },
-  'settings.units': { fr: 'Unités', en: 'Units' },
-  'settings.gpsAccuracy': { fr: 'Seuil GPS (m)', en: 'GPS Threshold (m)' },
+  // Common translations
+  'common.loading': { fr: 'Chargement...', en: 'Loading...' },
+  'common.error': { fr: 'Erreur', en: 'Error' },
+  'common.success': { fr: 'Succès', en: 'Success' },
+  'common.cancel': { fr: 'Annuler', en: 'Cancel' },
+  'common.save': { fr: 'Enregistrer', en: 'Save' },
+  'common.back': { fr: 'Retour', en: 'Back' },
+  'common.next': { fr: 'Suivant', en: 'Next' },
+  'common.finish': { fr: 'Terminer', en: 'Finish' },
 
-  // Dashboard
-  'dashboard.newGame': { fr: 'Nouvelle partie', en: 'New Game' },
-  'dashboard.ongoing': { fr: 'En cours', en: 'Ongoing' },
-  'dashboard.completed': { fr: 'Achevées', en: 'Completed' },
-  'dashboard.resume': { fr: 'Reprendre', en: 'Resume' },
-  'dashboard.details': { fr: 'Voir détails', en: 'View details' },
+  // Units
+  'units.meters': { fr: 'm', en: 'm' },
+  'units.yards': { fr: 'yd', en: 'yd' },
+
+  // Scorecard  
+  'scorecard.title': { fr: 'Carte de score', en: 'Scorecard' },
+  'scorecard.hole': { fr: 'Trou', en: 'Hole' },
+  'scorecard.par': { fr: 'Par', en: 'Par' },
+  'scorecard.hcp': { fr: 'HCP', en: 'HCP' },
+  'scorecard.out': { fr: 'ALLER', en: 'OUT' },
+  'scorecard.in': { fr: 'RETOUR', en: 'IN' },
+  'scorecard.total': { fr: 'TOTAL', en: 'TOTAL' },
+  'scorecard.vsPar': { fr: 'vs Par', en: 'vs Par' },
 };
 
 export function useI18n() {

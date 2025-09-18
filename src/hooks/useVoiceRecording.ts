@@ -1,11 +1,25 @@
 import { useState, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
-export function useVoiceRecording() {
+interface TranscriptionResult {
+  text: string;
+  action: string;
+  confidence?: number;
+}
+
+interface UseVoiceRecordingReturn {
+  isRecording: boolean;
+  isProcessing: boolean;
+  startRecording: () => Promise<void>;
+  stopRecording: () => Promise<TranscriptionResult | null>;
+}
+
+export function useVoiceRecording(): UseVoiceRecordingReturn {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
 
@@ -17,14 +31,16 @@ export function useVoiceRecording() {
           channelCount: 1,
           echoCancellation: true,
           noiseSuppression: true,
+          autoGainControl: true
         } 
       });
+
+      streamRef.current = stream;
+      chunksRef.current = [];
 
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus'
       });
-
-      chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -32,9 +48,14 @@ export function useVoiceRecording() {
         }
       };
 
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Collect data every second
       mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
+      
+      toast({
+        title: "enregistrement démarré",
+        description: "Parlez maintenant...",
+      });
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
@@ -45,7 +66,7 @@ export function useVoiceRecording() {
     }
   }, [toast]);
 
-  const stopRecording = useCallback((): Promise<{ text: string; action: string } | null> => {
+  const stopRecording = useCallback((): Promise<TranscriptionResult | null> => {
     return new Promise((resolve) => {
       if (!mediaRecorderRef.current || !isRecording) {
         resolve(null);
@@ -53,42 +74,73 @@ export function useVoiceRecording() {
       }
 
       setIsProcessing(true);
+      setIsRecording(false);
 
       mediaRecorderRef.current.onstop = async () => {
         try {
           const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm;codecs=opus' });
           
-          const formData = new FormData();
-          formData.append('audio', audioBlob, 'recording.webm');
-          formData.append('language', 'fr');
+          // Convert to base64 for API transmission
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            try {
+              const base64Audio = (reader.result as string).split(',')[1];
 
-          const { data, error } = await supabase.functions.invoke('voice-to-text', {
-            body: formData,
-          });
+              const { data, error } = await supabase.functions.invoke('voice-to-text', {
+                body: { audio: base64Audio }
+              });
 
-          if (error) throw error;
+              if (error) throw error;
 
-          resolve(data);
+              const result: TranscriptionResult = {
+                text: data.text || '',
+                action: data.action || 'message',
+                confidence: data.confidence
+              };
+
+              toast({
+                title: "Transcription terminée",
+                description: result.text ? `"${result.text}"` : "Aucun texte détecté",
+              });
+
+              resolve(result);
+            } catch (error) {
+              console.error('Error processing voice:', error);
+              toast({
+                title: "Erreur",
+                description: "Impossible de traiter l'enregistrement vocal",
+                variant: "destructive",
+              });
+              resolve(null);
+            } finally {
+              setIsProcessing(false);
+            }
+          };
+
+          reader.readAsDataURL(audioBlob);
         } catch (error) {
-          console.error('Error processing voice:', error);
+          console.error('Error stopping recording:', error);
           toast({
             title: "Erreur",
-            description: "Impossible de traiter l'enregistrement vocal",
+            description: "Impossible de finaliser l'enregistrement",
             variant: "destructive",
           });
-          resolve(null);
-        } finally {
           setIsProcessing(false);
-          setIsRecording(false);
-          
-          // Stop all tracks
-          if (mediaRecorderRef.current?.stream) {
-            mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-          }
+          resolve(null);
         }
       };
 
       mediaRecorderRef.current.stop();
+      
+      // Stop all tracks
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      // Clean up
+      chunksRef.current = [];
+      mediaRecorderRef.current = null;
     });
   }, [isRecording, toast]);
 
