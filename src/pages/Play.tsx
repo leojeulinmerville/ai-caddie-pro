@@ -193,7 +193,7 @@ export default function Play() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/dashboard')}
-              className="text-hs-ink hover:text-hs-green-900"
+              className="text-muted-foreground hover:text-primary hover:bg-primary/10"
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
