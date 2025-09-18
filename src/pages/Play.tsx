@@ -253,11 +253,11 @@ export default function Play() {
       {/* Main Content */}
       <div className="flex-1">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-2 bg-white border-b border-hs-sand/20">
-            <TabsTrigger value="game" className="data-[state=active]:bg-hs-green-100 data-[state=active]:text-white">
+          <TabsList className="grid w-full grid-cols-2 bg-white border-b border-border">
+            <TabsTrigger value="game" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Jeu
             </TabsTrigger>
-            <TabsTrigger value="scorecard" className="data-[state=active]:bg-hs-green-100 data-[state=active]:text-white">
+            <TabsTrigger value="scorecard" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Scorecard
             </TabsTrigger>
           </TabsList>

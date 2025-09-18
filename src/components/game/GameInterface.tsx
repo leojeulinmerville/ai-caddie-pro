@@ -60,9 +60,8 @@ export function GameInterface({
       <div className="grid grid-cols-2 gap-4">
         <Button
           onClick={onAddStroke}
-          className="bg-hs-green-100 hover:bg-hs-green-200 text-white py-6 text-lg"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg"
         >
-          <Plus className="w-5 h-5 mr-2" />
           +1
         </Button>
         <Button
