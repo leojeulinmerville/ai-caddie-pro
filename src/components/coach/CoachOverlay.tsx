@@ -171,7 +171,7 @@ export function CoachOverlay({
 
   return (
     <div className="fixed inset-0 bg-black/20 flex items-end justify-end p-4 z-50 pointer-events-none">
-      <div className="w-96 max-w-[90vw] h-[600px] max-h-[85vh] bg-background border rounded-xl shadow-2xl animate-slide-in-up pointer-events-auto flex flex-col">
+      <div className="w-96 max-w-[90vw] h-[650px] max-h-[90vh] bg-background border rounded-xl shadow-2xl animate-slide-in-up pointer-events-auto flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b flex-shrink-0">
           <div className="flex items-center gap-2">
@@ -201,13 +201,13 @@ export function CoachOverlay({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="coach" className="flex-1 flex flex-col mt-0 min-h-0">
+          <TabsContent value="coach" className="flex-1 flex flex-col mt-0 min-h-0 overflow-hidden">
             <div className="px-3 py-2 text-center text-xs text-muted-foreground border-b flex-shrink-0">
               Trou {currentHole} • {totalStrokes} coups • HCP {playerProfile.handicap}
             </div>
             
-            <ScrollArea className="flex-1 p-3 min-h-0">
-              <div className="space-y-3">
+            <ScrollArea className="flex-1 p-3 overflow-auto">
+              <div className="space-y-3 min-h-full">
                 {currentMessages.map((message) => (
                   <div
                     key={message.id}
@@ -244,9 +244,9 @@ export function CoachOverlay({
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="rules" className="flex-1 flex flex-col mt-0 min-h-0">
-            <ScrollArea className="flex-1 p-3 min-h-0" ref={scrollAreaRef}>
-              <div className="space-y-3">
+          <TabsContent value="rules" className="flex-1 flex flex-col mt-0 min-h-0 overflow-hidden">
+            <ScrollArea className="flex-1 p-3 overflow-auto" ref={scrollAreaRef}>
+              <div className="space-y-3 min-h-full">
                 {currentMessages.map((message) => (
                   <div
                     key={message.id}
