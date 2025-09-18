@@ -162,10 +162,7 @@ export function CoachOverlay({
     sendMessage(input);
   };
 
-  const currentMessages = messages.filter(msg => msg.mode === activeTab);
-  const suggestions = activeTab === "coach" 
-    ? ["Quel club ?", "Stratégie vent", "Sortie bunker", "Putting"]
-    : ["Balle dans l'eau", "Procédure drop", "Obstruction"];
+  // Remove unused variables - each tab manages its own content
 
   if (!isOpen) return null;
 
@@ -201,13 +198,14 @@ export function CoachOverlay({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="coach" className="flex-1 flex flex-col mt-0 min-h-0 overflow-hidden">
+          {/* Coach Tab */}
+          <TabsContent value="coach" className="flex-1 flex flex-col mt-0 min-h-0 data-[state=active]:flex data-[state=inactive]:hidden">
             <div className="px-3 py-2 text-center text-xs text-muted-foreground border-b flex-shrink-0">
               Trou {currentHole} • {totalStrokes} coups • HCP {playerProfile.handicap}
             </div>
             
-            <ScrollArea className="flex-1 p-3 overflow-auto">
-              <div className="space-y-3 min-h-full">
+            <ScrollArea className="flex-1 p-3">
+              <div className="space-y-3">
                 {messages.filter(msg => msg.mode === 'coach').map((message) => (
                   <div
                     key={message.id}
@@ -264,9 +262,10 @@ export function CoachOverlay({
             )}
           </TabsContent>
 
-          <TabsContent value="rules" className="flex-1 flex flex-col mt-0 min-h-0 overflow-hidden">
-            <ScrollArea className="flex-1 p-3 overflow-auto" ref={scrollAreaRef}>
-              <div className="space-y-3 min-h-full">
+          {/* Rules Tab */}
+          <TabsContent value="rules" className="flex-1 flex flex-col mt-0 min-h-0 data-[state=active]:flex data-[state=inactive]:hidden">
+            <ScrollArea className="flex-1 p-3" ref={scrollAreaRef}>
+              <div className="space-y-3">
                 {messages.filter(msg => msg.mode === 'rules').map((message) => (
                   <div
                     key={message.id}
