@@ -221,7 +221,7 @@ export function CoachOverlay({
                       <div className={`rounded-lg p-2 ${
                         message.isBot
                           ? "bg-hs-beige text-hs-ink"
-                          : "bg-hs-green-100 text-white"
+                          : "bg-hs-beige text-hs-ink border border-hs-green-100"
                       }`}>
                         <div className="text-xs whitespace-pre-wrap">
                           {message.text}
@@ -260,7 +260,7 @@ export function CoachOverlay({
                       <div className={`rounded-lg p-2 ${
                         message.isBot
                           ? "bg-hs-beige text-hs-ink"
-                          : "bg-hs-green-100 text-white"
+                          : "bg-hs-beige text-hs-ink border border-hs-green-100"
                       }`}>
                         <div className="text-xs whitespace-pre-wrap">
                           {message.text}
@@ -284,7 +284,7 @@ export function CoachOverlay({
           </TabsContent>
 
           {/* Quick Suggestions */}
-          {currentMessages.length <= 1 && (
+          {currentMessages.length === 0 && (
             <div className="p-3 border-t flex-shrink-0">
               <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
               <div className="flex flex-wrap gap-1">
