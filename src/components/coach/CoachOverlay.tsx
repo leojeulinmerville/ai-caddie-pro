@@ -190,14 +190,14 @@ export function CoachOverlay({
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as 'coach' | 'rules')} className="flex flex-col flex-1 min-h-0">
-          <TabsList className="grid w-full grid-cols-2 mx-3 mt-3 h-9">
-            <TabsTrigger value="coach" className="flex items-center gap-1 text-xs">
+          <TabsList className="grid w-full grid-cols-2 m-2 h-8 text-xs">
+            <TabsTrigger value="coach" className="flex items-center gap-1 text-xs px-2">
               <MessageCircle className="w-3 h-3" />
-              Coach
+              <span className="hidden sm:inline">Coach</span>
             </TabsTrigger>
-            <TabsTrigger value="rules" className="flex items-center gap-1 text-xs">
+            <TabsTrigger value="rules" className="flex items-center gap-1 text-xs px-2">
               <BookOpen className="w-3 h-3" />
-              Règles
+              <span className="hidden sm:inline">Règles</span>
             </TabsTrigger>
           </TabsList>
 
@@ -221,7 +221,7 @@ export function CoachOverlay({
                       <div className={`rounded-lg p-2 ${
                         message.isBot
                           ? "bg-hs-beige text-hs-ink"
-                          : "bg-hs-green-100 text-white"
+                          : "bg-hs-green-100 text-hs-ink"
                       }`}>
                         <div className="text-xs whitespace-pre-wrap">
                           {message.text}
@@ -260,7 +260,7 @@ export function CoachOverlay({
                       <div className={`rounded-lg p-2 ${
                         message.isBot
                           ? "bg-hs-beige text-hs-ink"
-                          : "bg-hs-green-100 text-white"
+                          : "bg-hs-green-100 text-hs-ink"
                       }`}>
                         <div className="text-xs whitespace-pre-wrap">
                           {message.text}
