@@ -208,7 +208,7 @@ export function CoachOverlay({
             
             <ScrollArea className="flex-1 p-3 overflow-auto">
               <div className="space-y-3 min-h-full">
-                {currentMessages.map((message) => (
+                {messages.filter(msg => msg.mode === 'coach').map((message) => (
                   <div
                     key={message.id}
                     className={`flex gap-2 ${
@@ -231,7 +231,7 @@ export function CoachOverlay({
                   </div>
                 ))}
                 
-                {isLoading && (
+                {isLoading && activeTab === 'coach' && (
                   <div className="flex justify-start">
                     <div className="bg-hs-beige rounded-lg p-2 flex items-center gap-1">
                       <div className="w-1.5 h-1.5 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
@@ -244,7 +244,7 @@ export function CoachOverlay({
             </ScrollArea>
 
             {/* Coach Suggestions */}
-            {currentMessages.length === 0 && (
+            {messages.filter(msg => msg.mode === 'coach').length === 0 && (
               <div className="p-3 border-t flex-shrink-0">
                 <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
                 <div className="flex flex-wrap gap-1">
@@ -253,7 +253,7 @@ export function CoachOverlay({
                       key={index}
                       variant="outline"
                       size="sm"
-                      onClick={() => sendMessage(suggestion)}
+                      onClick={() => sendMessage(suggestion, 'coach')}
                       className="text-xs h-6 px-2"
                     >
                       {suggestion}
@@ -267,7 +267,7 @@ export function CoachOverlay({
           <TabsContent value="rules" className="flex-1 flex flex-col mt-0 min-h-0 overflow-hidden">
             <ScrollArea className="flex-1 p-3 overflow-auto" ref={scrollAreaRef}>
               <div className="space-y-3 min-h-full">
-                {currentMessages.map((message) => (
+                {messages.filter(msg => msg.mode === 'rules').map((message) => (
                   <div
                     key={message.id}
                     className={`flex gap-2 ${
@@ -290,7 +290,7 @@ export function CoachOverlay({
                   </div>
                 ))}
                 
-                {isLoading && (
+                {isLoading && activeTab === 'rules' && (
                   <div className="flex justify-start">
                     <div className="bg-hs-beige rounded-lg p-2 flex items-center gap-1">
                       <div className="w-1.5 h-1.5 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
@@ -303,7 +303,7 @@ export function CoachOverlay({
             </ScrollArea>
 
             {/* Rules Suggestions */}
-            {currentMessages.length === 0 && (
+            {messages.filter(msg => msg.mode === 'rules').length === 0 && (
               <div className="p-3 border-t flex-shrink-0">
                 <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
                 <div className="flex flex-wrap gap-1">
@@ -312,7 +312,7 @@ export function CoachOverlay({
                       key={index}
                       variant="outline"
                       size="sm"
-                      onClick={() => sendMessage(suggestion)}
+                      onClick={() => sendMessage(suggestion, 'rules')}
                       className="text-xs h-6 px-2"
                     >
                       {suggestion}
