@@ -234,7 +234,7 @@ export default function Play() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                <DropdownMenuItem onClick={() => navigate('/profile')}>
                   Mon compte
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/stats')}>

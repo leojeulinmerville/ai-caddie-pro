@@ -10,6 +10,7 @@ import SignUp from '@/pages/SignUp';
 import Dashboard from '@/pages/Dashboard';
 import Setup from '@/pages/Setup';
 import Play from '@/pages/Play';
+import Profile from '@/pages/Profile';
 import StatsHistorySettings from '@/pages/StatsHistorySettings';
 
 const queryClient = new QueryClient();
@@ -90,6 +91,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Play />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               } 
             />
