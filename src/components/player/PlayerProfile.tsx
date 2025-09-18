@@ -68,6 +68,16 @@ export function PlayerProfile({ onComplete, onBack, userId }: PlayerProfileProps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!userId) {
+      toast({
+        title: "Erreur",
+        description: "Utilisateur non identifié",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
     
     try {
@@ -80,6 +90,9 @@ export function PlayerProfile({ onComplete, onBack, userId }: PlayerProfileProps
           index_handicap: formData.handicap,
           preferred_units: formData.preferredUnits,
           language: formData.language
+        }, {
+          onConflict: 'user_id',
+          ignoreDuplicates: false
         });
 
       if (error) throw error;
@@ -91,6 +104,7 @@ export function PlayerProfile({ onComplete, onBack, userId }: PlayerProfileProps
 
       onComplete(formData);
     } catch (error: any) {
+      console.error('Profile save error:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de sauvegarder le profil",
