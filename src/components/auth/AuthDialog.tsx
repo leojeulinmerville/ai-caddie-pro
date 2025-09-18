@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface User {
   id: string;
@@ -22,6 +24,7 @@ interface AuthDialogProps {
 export function AuthDialog({ open, onOpenChange, onSuccess }: AuthDialogProps) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,19 +32,63 @@ export function AuthDialog({ open, onOpenChange, onSuccess }: AuthDialogProps) {
     
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
     const displayName = formData.get("displayName") as string;
     
-    // Simulate API call
-    setTimeout(() => {
-      const user: User = {
-        id: "user_" + Date.now(),
-        email,
-        displayName: displayName || email.split("@")[0]
-      };
-      
-      onSuccess(user);
+    try {
+      if (activeTab === "login") {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (error) throw error;
+        
+        if (data.user) {
+          const user: User = {
+            id: data.user.id,
+            email: data.user.email!,
+            displayName: data.user.user_metadata?.display_name || data.user.email!.split("@")[0]
+          };
+          onSuccess(user);
+        }
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              display_name: displayName
+            }
+          }
+        });
+        
+        if (error) throw error;
+        
+        if (data.user) {
+          toast({
+            title: "Compte créé avec succès",
+            description: "Vérifiez votre email pour confirmer votre compte",
+          });
+          
+          const user: User = {
+            id: data.user.id,
+            email: data.user.email!,
+            displayName: displayName || data.user.email!.split("@")[0]
+          };
+          onSuccess(user);
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (

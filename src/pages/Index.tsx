@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,8 @@ import { GameInterface } from "@/components/game/GameInterface";
 import { PlayerProfile } from "@/components/player/PlayerProfile";
 import { CoachChat } from "@/components/coach/CoachChat";
 import { Trophy, Target, Zap, MapPin } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Toaster } from "@/components/ui/toaster";
 
 interface User {
   id: string;
@@ -23,10 +25,36 @@ interface PlayerData {
 }
 
 const Index = () => {
+  const { user: authUser, loading } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [playerProfile, setPlayerProfile] = useState<PlayerData | null>(null);
   const [currentView, setCurrentView] = useState<"home" | "game" | "profile" | "coach">("home");
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (authUser) {
+      setUser({
+        id: authUser.id,
+        email: authUser.email!,
+        displayName: authUser.user_metadata?.display_name || authUser.email!.split("@")[0]
+      });
+    } else {
+      setUser(null);
+      setPlayerProfile(null);
+      setCurrentView("home");
+    }
+  }, [authUser]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleLogin = (userData: User) => {
     setUser(userData);
@@ -174,6 +202,7 @@ const Index = () => {
           onOpenChange={setAuthDialogOpen}
           onSuccess={handleLogin}
         />
+        <Toaster />
       </div>
     );
   }
@@ -181,37 +210,52 @@ const Index = () => {
   // Profile setup view
   if (currentView === "profile" && user && !playerProfile) {
     return (
-      <PlayerProfile 
-        onComplete={handleProfileComplete}
-        onBack={() => setCurrentView("home")}
-      />
+      <>
+        <PlayerProfile 
+          onComplete={handleProfileComplete}
+          onBack={() => setCurrentView("home")}
+          userId={user.id}
+        />
+        <Toaster />
+      </>
     );
   }
 
   // Game interface view
   if (currentView === "game" && user && playerProfile) {
     return (
-      <GameInterface 
-        user={user}
-        playerProfile={playerProfile}
-        onBack={() => setCurrentView("home")}
-        onOpenCoach={() => setCurrentView("coach")}
-      />
+      <>
+        <GameInterface 
+          user={user}
+          playerProfile={playerProfile}
+          onBack={() => setCurrentView("home")}
+          onOpenCoach={() => setCurrentView("coach")}
+        />
+        <Toaster />
+      </>
     );
   }
 
   // Coach chat view
   if (currentView === "coach") {
     return (
-      <CoachChat 
-        user={user}
-        playerProfile={playerProfile}
-        onBack={() => setCurrentView(user && playerProfile ? "game" : "home")}
-      />
+      <>
+        <CoachChat 
+          user={user}
+          playerProfile={playerProfile}
+          onBack={() => setCurrentView(user && playerProfile ? "game" : "home")}
+        />
+        <Toaster />
+      </>
     );
   }
 
-  return null;
+  return (
+    <>
+      <div>Home view content here...</div>
+      <Toaster />
+    </>
+  );
 };
 
 export default Index;

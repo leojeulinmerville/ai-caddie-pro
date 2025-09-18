@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, User, Target, Globe, Ruler } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface PlayerData {
   firstName: string;
@@ -18,9 +20,10 @@ interface PlayerData {
 interface PlayerProfileProps {
   onComplete: (data: PlayerData) => void;
   onBack: () => void;
+  userId: string;
 }
 
-export function PlayerProfile({ onComplete, onBack }: PlayerProfileProps) {
+export function PlayerProfile({ onComplete, onBack, userId }: PlayerProfileProps) {
   const [formData, setFormData] = useState<PlayerData>({
     firstName: "",
     lastName: "",
@@ -28,10 +31,74 @@ export function PlayerProfile({ onComplete, onBack }: PlayerProfileProps) {
     preferredUnits: "m",
     language: "fr"
   });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    loadProfile();
+  }, [userId]);
+
+  const loadProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('player_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') throw error;
+
+      if (data) {
+        setFormData({
+          firstName: data.first_name || "",
+          lastName: data.last_name || "",
+          handicap: data.index_handicap || 18,
+          preferredUnits: (data.preferred_units as "m" | "yd") || "m",
+          language: (data.language as "fr" | "en") || "fr"
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger le profil",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onComplete(formData);
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase
+        .from('player_profiles')
+        .upsert({
+          user_id: userId,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          index_handicap: formData.handicap,
+          preferred_units: formData.preferredUnits,
+          language: formData.language
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Profil sauvegardé",
+        description: "Votre profil a été mis à jour avec succès",
+      });
+
+      onComplete(formData);
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de sauvegarder le profil",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field: keyof PlayerData, value: string | number) => {
@@ -196,8 +263,9 @@ export function PlayerProfile({ onComplete, onBack }: PlayerProfileProps) {
               <Button 
                 type="submit" 
                 className="w-full golf-gradient hover:golf-glow transition-golf text-lg py-6"
+                disabled={loading}
               >
-                Sauvegarder et commencer à jouer
+                {loading ? "Sauvegarde..." : "Sauvegarder et commencer à jouer"}
               </Button>
             </form>
           </CardContent>
