@@ -262,19 +262,39 @@ export default function Play() {
           </TabsContent>
           
           <TabsContent value="scorecard" className="flex-1 mt-0">
-            <div className="p-6">
-              <div className="text-center text-hs-ink">
-                Scorecard sera disponible prochainement
-              </div>
-            </div>
+            <Scorecard
+              strokes={gameLogic.strokes.reduce((acc: Record<number, any[]>, stroke: any) => {
+                if (!acc[stroke.hole_index]) acc[stroke.hole_index] = [];
+                acc[stroke.hole_index].push(stroke);
+                return acc;
+              }, {})}
+              currentHole={gameLogic.currentHole}
+              playerProfile={{
+                firstName: user?.user_metadata?.full_name?.split(' ')[0] || "Joueur",
+                lastName: user?.user_metadata?.full_name?.split(' ')[1] || "",
+                handicap: 18,
+                preferredUnits: 'm',
+                language: 'fr'
+              }}
+            />
           </TabsContent>
         </Tabs>
       </div>
 
       {/* Coach Overlay */}
-      <div>
-        {/* Coach will be implemented next */}
-      </div>
+      <CoachOverlay
+        isOpen={coachOpen}
+        onClose={() => setCoachOpen(false)}
+        roundId={roundId}
+        isRecording={gameLogic.isRecording}
+        onToggleVoiceRecording={gameLogic.toggleVoiceRecording}
+        currentHole={gameLogic.currentHole}
+        totalStrokes={gameLogic.totalStrokes}
+        playerProfile={{
+          handicap: 18,
+          firstName: user?.user_metadata?.full_name || "Joueur"
+        }}
+      />
     </div>
   );
 }

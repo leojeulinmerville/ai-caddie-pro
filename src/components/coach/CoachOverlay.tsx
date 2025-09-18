@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { X, Send, Mic, MicOff, Bot, BookOpen } from 'lucide-react';
+import { X, Send, Mic, MicOff, Bot, BookOpen, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/hooks/useI18n';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +24,12 @@ interface CoachOverlayProps {
   onVoiceMessage?: (text: string) => void;
   isRecording?: boolean;
   onToggleVoiceRecording?: () => void;
+  currentHole?: number;
+  totalStrokes?: number;
+  playerProfile?: {
+    handicap: number;
+    firstName: string;
+  };
 }
 
 export function CoachOverlay({ 
@@ -32,7 +38,10 @@ export function CoachOverlay({
   roundId,
   onVoiceMessage,
   isRecording = false,
-  onToggleVoiceRecording
+  onToggleVoiceRecording,
+  currentHole = 1,
+  totalStrokes = 0,
+  playerProfile = { handicap: 18, firstName: 'Joueur' }
 }: CoachOverlayProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -153,7 +162,7 @@ export function CoachOverlay({
     sendMessage(input);
   };
 
-  const currentMessages = activeTab === "coach" ? coachMessages : rulesMessages;
+  const currentMessages = messages.filter(msg => msg.mode === activeTab);
   const suggestions = activeTab === "coach" 
     ? ["Quel club ?", "Stratégie vent", "Sortie bunker", "Putting"]
     : ["Balle dans l'eau", "Procédure drop", "Obstruction"];
@@ -178,7 +187,7 @@ export function CoachOverlay({
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
+        <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as 'coach' | 'rules')} className="flex flex-col h-full">
           <TabsList className="grid w-full grid-cols-2 mx-4 mt-4">
             <TabsTrigger value="coach" className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
@@ -201,19 +210,19 @@ export function CoachOverlay({
                   <div
                     key={message.id}
                     className={`flex gap-3 ${
-                      message.type === "user" ? "justify-end" : "justify-start"
+                      message.isBot ? "justify-start" : "justify-end"
                     }`}
                   >
                     <div className={`max-w-[80%] ${
-                      message.type === "user" ? "order-2" : "order-1"
+                      message.isBot ? "order-1" : "order-2"
                     }`}>
                       <div className={`rounded-lg p-3 ${
-                        message.type === "user"
-                          ? "bg-hs-green-100 text-white"
-                          : "bg-hs-beige text-hs-ink"
+                        message.isBot
+                          ? "bg-hs-beige text-hs-ink"
+                          : "bg-hs-green-100 text-white"
                       }`}>
                         <div className="text-sm whitespace-pre-wrap">
-                          {message.content}
+                          {message.text}
                         </div>
                       </div>
                     </div>
@@ -234,25 +243,25 @@ export function CoachOverlay({
           </TabsContent>
 
           <TabsContent value="rules" className="flex-1 flex flex-col mt-0">
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
               <div className="space-y-4">
                 {currentMessages.map((message) => (
                   <div
                     key={message.id}
                     className={`flex gap-3 ${
-                      message.type === "user" ? "justify-end" : "justify-start"
+                      message.isBot ? "justify-start" : "justify-end"
                     }`}
                   >
                     <div className={`max-w-[80%] ${
-                      message.type === "user" ? "order-2" : "order-1"
+                      message.isBot ? "order-1" : "order-2"
                     }`}>
                       <div className={`rounded-lg p-3 ${
-                        message.type === "user"
-                          ? "bg-hs-green-100 text-white"
-                          : "bg-hs-beige text-hs-ink"
+                        message.isBot
+                          ? "bg-hs-beige text-hs-ink"
+                          : "bg-hs-green-100 text-white"
                       }`}>
                         <div className="text-sm whitespace-pre-wrap">
-                          {message.content}
+                          {message.text}
                         </div>
                       </div>
                     </div>
@@ -296,8 +305,9 @@ export function CoachOverlay({
           <div className="p-4 border-t">
             <form onSubmit={handleSubmit} className="flex gap-2">
               <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
                 placeholder={
                   activeTab === "coach" 
                     ? "Demandez conseil..."
@@ -307,16 +317,18 @@ export function CoachOverlay({
                 className="flex-1"
               />
               
-              <Button 
-                onClick={handleVoiceRecording}
-                type="button"
-                size="sm" 
-                variant={isRecording ? "destructive" : "outline"}
-                className="px-3"
-                disabled={isProcessing}
-              >
-                <Mic className={`w-4 h-4 ${isRecording ? 'animate-pulse' : ''}`} />
-              </Button>
+              {onToggleVoiceRecording && (
+                <Button 
+                  onClick={onToggleVoiceRecording}
+                  type="button"
+                  size="sm" 
+                  variant={isRecording ? "destructive" : "outline"}
+                  className="px-3"
+                  disabled={isLoading}
+                >
+                  <Mic className={`w-4 h-4 ${isRecording ? 'animate-pulse' : ''}`} />
+                </Button>
+              )}
               <Button 
                 type="submit" 
                 size="sm" 
