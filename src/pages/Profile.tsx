@@ -143,7 +143,6 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
       <div className="container mx-auto p-6 max-w-2xl">
         <div className="flex items-center gap-4 mb-6">
           <Button
