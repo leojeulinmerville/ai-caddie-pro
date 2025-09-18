@@ -49,6 +49,10 @@ export default function Play() {
   useEffect(() => {
     if (roundId) {
       loadRound();
+    } else {
+      // No roundId provided, redirect to dashboard
+      setLoading(false);
+      navigate('/dashboard');
     }
   }, [roundId]);
 
@@ -69,7 +73,10 @@ export default function Play() {
   }, [round]);
 
   const loadRound = async () => {
-    if (!roundId || !user) return;
+    if (!roundId || !user) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data: round, error } = await supabase
