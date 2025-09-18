@@ -167,9 +167,11 @@ export function CoachOverlay({
     ? ["Quel club ?", "Stratégie vent", "Sortie bunker", "Putting"]
     : ["Balle dans l'eau", "Procédure drop", "Obstruction"];
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end z-50">
-      <div className="w-full bg-background border-t rounded-t-xl animate-slide-in-up" style={{height: "70vh"}}>
+    <div className="fixed inset-0 bg-black/20 flex items-end justify-end p-4 z-50 pointer-events-none">
+      <div className="w-96 max-w-[90vw] bg-background border rounded-xl shadow-2xl animate-slide-in-up pointer-events-auto" style={{height: "80vh", maxHeight: "600px"}}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-3">
