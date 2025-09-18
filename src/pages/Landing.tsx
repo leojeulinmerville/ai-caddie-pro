@@ -1,98 +1,62 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { AuthDialog } from "@/components/auth/AuthDialog";
-import { Trophy, Target, Zap, MapPin, Brain, Mic } from "lucide-react";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { MapPin, Mic, Brain, BarChart3 } from 'lucide-react';
 
-interface User {
-  id: string;
-  email: string;
-  displayName: string;
-}
-
-interface LandingProps {
-  onLogin: (user: User) => void;
-}
-
-const Landing = ({ onLogin }: LandingProps) => {
-  const [authDialogOpen, setAuthDialogOpen] = useState(false);
-
-  const handleLogin = (userData: User) => {
-    onLogin(userData);
-    setAuthDialogOpen(false);
-  };
+export default function Landing() {
 
   const features = [
     {
-      icon: Target,
-      title: "Compteur de Score Intelligent",
-      description: "Suivi précis de vos coups avec GPS et reconnaissance vocale"
-    },
-    {
       icon: Brain,
       title: "Coach IA en Direct",
-      description: "Conseils stratégiques personnalisés basés sur votre jeu"
-    },
-    {
-      icon: Trophy,
-      title: "Copilot Règles",
-      description: "Assistant arbitre pour toutes vos questions de règlement"
-    },
-    {
-      icon: MapPin,
-      title: "GPS Précis",
-      description: "Distances exactes et analyse de chaque coup"
+      description: "Conseils stratégiques personnalisés basés sur votre niveau et situation de jeu"
     },
     {
       icon: Mic,
       title: "Commandes Vocales",
-      description: "Contrôlez votre scorecard à la voix pendant le jeu"
+      description: "Contrôlez votre scorecard à la voix : 'play', 'finish', 'undo'"
     },
     {
-      icon: Zap,
+      icon: MapPin,
+      title: "GPS Précis",
+      description: "Distances automatiques entre vos coups avec une précision optimale"
+    },
+    {
+      icon: BarChart3,
       title: "Statistiques Avancées",
-      description: "Moyennes par club, progression et insights détaillés"
+      description: "Moyennes par club, progression et insights détaillés sur votre jeu"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    <div className="min-h-screen bg-hs-beige">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 px-4">
-        <div className="absolute inset-0 bg-gradient-subtle opacity-60" />
-        <div className="relative max-w-4xl mx-auto text-center">
-          <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
-            IA • GPS • Vocal
-          </Badge>
-          
-          <h1 className="text-4xl md:text-6xl font-black text-balance mb-6 tracking-tight">
-            <span className="golf-gradient bg-clip-text text-transparent">
-              HighSwing.ai
-            </span>
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-hs-green-900">
+            HighSwing.ai
           </h1>
           
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 text-balance max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl text-hs-ink mb-8 max-w-2xl mx-auto">
             Votre caddie IA personnel pour améliorer votre golf avec des conseils en temps réel
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              variant="default"
-              onClick={() => setAuthDialogOpen(true)}
-              className="golf-gradient hover:golf-glow transition-golf text-lg px-8 py-4"
+              className="bg-hs-green-100 hover:bg-hs-green-200 text-white px-8 py-3"
+              asChild
             >
-              Créer un compte
+              <Link to="/signup">Créer un compte</Link>
             </Button>
-            
             <Button 
-              size="lg" 
-              variant="outline"
-              onClick={() => setAuthDialogOpen(true)}
-              className="text-lg px-8 py-4 transition-golf hover:bg-accent/10"
+              variant="outline" 
+              size="lg"
+              className="border-hs-green-100 text-hs-green-100 hover:bg-hs-green-100 hover:text-white px-8 py-3"
+              asChild
             >
-              Se connecter
+              <Link to="/signin">Se connecter</Link>
             </Button>
           </div>
         </div>
@@ -102,25 +66,25 @@ const Landing = ({ onLogin }: LandingProps) => {
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-accent">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-hs-green-900">
               Révolutionnez votre golf
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-hs-ink max-w-2xl mx-auto">
               Une suite complète d'outils alimentés par l'IA pour analyser et améliorer chaque aspect de votre jeu
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 gap-6">
             {features.map((feature, index) => (
-              <Card key={index} className="golf-card hover:golf-shadow transition-golf group">
-                <CardHeader className="pb-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-golf">
-                    <feature.icon className="w-6 h-6 text-primary" />
+              <Card key={index} className="bg-white border-hs-sand/20 hover:shadow-lg transition-all">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-hs-green-100/10 rounded-lg flex items-center justify-center mb-4">
+                    <feature.icon className="w-6 h-6 text-hs-green-100" />
                   </div>
-                  <CardTitle className="text-lg text-accent">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg text-hs-green-900">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">{feature.description}</p>
+                  <CardDescription className="text-hs-ink">{feature.description}</CardDescription>
                 </CardContent>
               </Card>
             ))}
@@ -129,33 +93,23 @@ const Landing = ({ onLogin }: LandingProps) => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 bg-muted/50">
+      <section className="py-16 px-4 bg-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-accent">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-hs-green-900">
             Prêt à améliorer votre handicap ?
           </h2>
-          <p className="text-lg text-muted-foreground mb-8">
+          <p className="text-lg text-hs-ink mb-8">
             Rejoignez les golfeurs qui utilisent l'IA pour progresser plus vite
           </p>
           <Button 
             size="lg" 
-            variant="default"
-            onClick={() => setAuthDialogOpen(true)}
-            className="golf-gradient hover:golf-glow transition-golf"
+            className="bg-hs-green-100 hover:bg-hs-green-200 text-white"
+            asChild
           >
-            Commencer maintenant
+            <Link to="/signup">Configurer mon profil</Link>
           </Button>
         </div>
       </section>
-
-      {/* Auth Dialog */}
-      <AuthDialog 
-        open={authDialogOpen} 
-        onOpenChange={setAuthDialogOpen}
-        onSuccess={handleLogin}
-      />
     </div>
   );
-};
-
-export default Landing;
+}

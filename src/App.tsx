@@ -1,136 +1,112 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import Landing from "./pages/Landing";
-import Dashboard from "./pages/Dashboard";
-import Setup from "./pages/Setup";
-import Play from "./pages/Play";
-import StatsHistorySettings from "./pages/StatsHistorySettings";
-import { PlayerProfile } from "@/components/player/PlayerProfile";
-import NotFound from "./pages/NotFound";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { useAuth } from '@/hooks/useAuth';
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+import Landing from '@/pages/Landing';
+import SignIn from '@/pages/SignIn';
+import SignUp from '@/pages/SignUp';
+import Dashboard from '@/pages/Dashboard';
+import Setup from '@/pages/Setup';
+import Play from '@/pages/Play';
+import StatsHistorySettings from '@/pages/StatsHistorySettings';
 
 const queryClient = new QueryClient();
 
-interface User {
-  id: string;
-  email: string;
-  displayName: string;
-}
-
-interface PlayerData {
-  firstName: string;
-  lastName: string;
-  handicap: number;
-  preferredUnits: "m" | "yd";
-  language: "fr" | "en";
-}
-
-const App = () => {
-  const { user: authUser, loading } = useAuth();
-  const [user, setUser] = useState<User | null>(null);
-  const [playerProfile, setPlayerProfile] = useState<PlayerData | null>(null);
-
-  useEffect(() => {
-    if (authUser) {
-      setUser({
-        id: authUser.id,
-        email: authUser.email!,
-        displayName: authUser.user_metadata?.display_name || authUser.email!.split("@")[0]
-      });
-      // TODO: Load player profile from database
-    } else {
-      setUser(null);
-      setPlayerProfile(null);
-    }
-  }, [authUser]);
-
+// Public Route component for authenticated users
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-hs-beige flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Chargement...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-hs-green-100 mx-auto"></div>
+          <p className="mt-4 text-hs-ink">Chargement...</p>
         </div>
       </div>
     );
   }
+  
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
+}
 
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+      <Router>
+        <div className="min-h-screen bg-hs-beige">
           <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={!user ? <Landing onLogin={setUser} /> : <Navigate to="/dashboard" />} />
+            {/* Public routes */}
+            <Route 
+              path="/" 
+              element={
+                <PublicRoute>
+                  <Landing />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/signin" 
+              element={
+                <PublicRoute>
+                  <SignIn />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/signup" 
+              element={
+                <PublicRoute>
+                  <SignUp />
+                </PublicRoute>
+              } 
+            />
             
-            {/* Protected Routes */}
-            {user && (
-              <>
-                <Route path="/dashboard" element={
-                  <Dashboard 
-                    user={user}
-                    onStartNewGame={() => window.location.href = '/setup'}
-                    onResumeGame={(roundId) => window.location.href = `/play/${roundId}`}
-                    onViewHistory={(roundId) => window.location.href = '/stats'}
-                  />
-                } />
-                
-                <Route path="/setup" element={
-                  <Setup 
-                    user={user}
-                    onBack={() => window.location.href = '/dashboard'}
-                    onStartGame={(setupData) => {
-                      // TODO: Create round and redirect to play
-                      console.log('Starting game with:', setupData);
-                    }}
-                  />
-                } />
-                
-                <Route path="/play/:roundId" element={
-                  playerProfile ? (
-                    <Play 
-                      user={user}
-                      playerProfile={playerProfile}
-                      roundId="temp"
-                      onBack={() => window.location.href = '/dashboard'}
-                      onQuitGame={() => window.location.href = '/dashboard'}
-                    />
-                  ) : (
-                    <PlayerProfile 
-                      onComplete={setPlayerProfile}
-                      onBack={() => window.location.href = '/dashboard'}
-                      userId={user.id}
-                    />
-                  )
-                } />
-                
-                <Route path="/stats" element={
-                  playerProfile ? (
-                    <StatsHistorySettings 
-                      user={user}
-                      playerProfile={playerProfile}
-                      onBack={() => window.location.href = '/dashboard'}
-                    />
-                  ) : (
-                    <Navigate to="/dashboard" />
-                  )
-                } />
-              </>
-            )}
-            
-            {/* Fallback */}
-            <Route path="*" element={<NotFound />} />
+            {/* Protected routes */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/setup" 
+              element={
+                <ProtectedRoute>
+                  <Setup />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/play/:roundId" 
+              element={
+                <ProtectedRoute>
+                  <Play />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/stats" 
+              element={
+                <ProtectedRoute>
+                  <StatsHistorySettings />
+                </ProtectedRoute>
+              } 
+            />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+          <Toaster />
+        </div>
+      </Router>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;
