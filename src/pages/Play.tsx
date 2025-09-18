@@ -2,15 +2,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, Mic, MicOff, Undo, Flag, Clock, MapPin, MessageCircle, MoreVertical } from "lucide-react";
-import { GameInterface } from "@/components/game/GameInterface";
 import { Scorecard } from "@/components/game/Scorecard";
-import { CoachChat } from "@/components/coach/CoachChat";
+import { CoachOverlay } from "@/components/coach/CoachOverlay";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useGameLogic } from "@/hooks/useGameLogic";
+import { useI18n } from "@/hooks/useI18n";
+import { formatDistance } from "@/utils/units";
 
 interface User {
   id: string;
@@ -35,14 +33,22 @@ interface PlayProps {
 }
 
 const Play = ({ user, playerProfile, roundId, onBack, onQuitGame }: PlayProps) => {
-  const [isRecording, setIsRecording] = useState(false);
   const [coachOpen, setCoachOpen] = useState(false);
-  const [gpsStatus, setGpsStatus] = useState<'connected' | 'disconnected' | 'loading'>('loading');
-  const [currentHole, setCurrentHole] = useState(1);
-  const [totalStrokes, setTotalStrokes] = useState(0);
   const [gameStartTime] = useState(new Date());
   const [elapsedTime, setElapsedTime] = useState('00:00');
-  const { toast } = useToast();
+  const { t } = useI18n();
+  
+  const {
+    currentHole,
+    totalStrokes,
+    strokes,
+    isRecording,
+    gpsStatus,
+    addStroke,
+    undoStroke,
+    finishHole,
+    toggleVoiceRecording
+  } = useGameLogic({ roundId });
 
   useEffect(() => {
     // Update elapsed time every minute
@@ -62,68 +68,15 @@ const Play = ({ user, playerProfile, roundId, onBack, onQuitGame }: PlayProps) =
     return () => clearInterval(timer);
   }, [gameStartTime]);
 
-  useEffect(() => {
-    // Check GPS status
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        () => setGpsStatus('connected'),
-        () => setGpsStatus('disconnected'),
-        { timeout: 5000 }
-      );
-    } else {
-      setGpsStatus('disconnected');
-    }
-  }, []);
-
-  const handleAddStroke = () => {
-    setTotalStrokes(prev => prev + 1);
-    toast({
-      title: "+1 enregistré",
-      description: "Coup ajouté au compteur",
-    });
-  };
-
-  const handleUndo = () => {
-    if (totalStrokes > 0) {
-      setTotalStrokes(prev => prev - 1);
-      toast({
-        title: "Coup annulé",
-        description: "Dernier coup supprimé",
-      });
-    }
-  };
-
-  const handleFinishHole = () => {
-    if (currentHole < 18) {
-      setCurrentHole(prev => prev + 1);
-      toast({
-        title: "Trou terminé",
-        description: `Passage au trou ${currentHole + 1}`,
-      });
-    } else {
-      // Finish round
-      toast({
-        title: "Partie terminée !",
-        description: "Félicitations pour votre partie",
-      });
-      onQuitGame();
-    }
-  };
-
-  const toggleMicrophone = () => {
-    setIsRecording(!isRecording);
-    if (!isRecording) {
-      toast({
-        title: "Écoute activée",
-        description: "Dites 'play', 'finish' ou 'undo'",
-      });
-    } else {
-      toast({
-        title: "Écoute désactivée",
-        description: "Microphone arrêté",
-      });
-    }
-  };
+  // Get last stroke for display
+  const currentHoleStrokes = strokes.filter(s => s.hole_local_idx === currentHole);
+  const lastStroke = currentHoleStrokes[currentHoleStrokes.length - 1];
+  
+  // Get last 3 strokes for coach context
+  const lastStrokes = strokes.slice(-3).map(s => ({
+    distance: s.distance || 0,
+    club: s.club || 'Unknown'
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -141,15 +94,15 @@ const Play = ({ user, playerProfile, roundId, onBack, onQuitGame }: PlayProps) =
             </Button>
             
             <div>
-              <h1 className="text-lg font-semibold text-accent">Parcours en cours</h1>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <h1 className="text-lg font-semibold text-hs-green-900">Parcours en cours</h1>
+              <div className="flex items-center gap-4 text-sm text-hs-sand">
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
                   {elapsedTime}
                 </div>
                 <div className="flex items-center gap-1">
-                  <MapPin className={`w-4 h-4 ${gpsStatus === 'connected' ? 'text-success' : 'text-warning'}`} />
-                  GPS {gpsStatus === 'connected' ? 'OK' : 'OFF'}
+                  <MapPin className={`w-4 h-4 ${gpsStatus === 'connected' ? 'text-hs-green-100' : 'text-red-500'}`} />
+                  {t('gps.' + gpsStatus)}
                 </div>
               </div>
             </div>
@@ -191,49 +144,60 @@ const Play = ({ user, playerProfile, roundId, onBack, onQuitGame }: PlayProps) =
       <div className="max-w-6xl mx-auto p-4">
         <Tabs defaultValue="game" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="game">Jeu</TabsTrigger>
-            <TabsTrigger value="scorecard">Scorecard</TabsTrigger>
+            <TabsTrigger value="game">{t('play.game')}</TabsTrigger>
+            <TabsTrigger value="scorecard">{t('play.scorecard')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="game" className="space-y-6">
             {/* Game Status */}
-            <Card className="golf-card">
+            <Card className="border-hs-beige/50 bg-white/50">
               <CardContent className="p-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-accent mb-2">
-                    Trou {currentHole}
+                  <div className="text-3xl font-bold text-hs-green-900 mb-2">
+                    {t('play.hole')} {currentHole}
                   </div>
-                  <div className="text-6xl font-black text-primary mb-4">
-                    {totalStrokes}
+                  <div className="text-6xl font-black text-hs-green-100 mb-4">
+                    {currentHoleStrokes.length}
                   </div>
-                  <div className="text-muted-foreground">
-                    Coups sur ce trou
+                  <div className="text-hs-sand">
+                    {t('play.strokes')}
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Last Shot Info */}
-            <Card className="golf-card">
+            <Card className="border-hs-beige/50 bg-white/50">
               <CardHeader>
-                <CardTitle className="text-lg">Dernier coup</CardTitle>
+                <CardTitle className="text-lg text-hs-green-900">{t('play.lastShot')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center text-muted-foreground">
-                  Aucun coup enregistré sur ce trou
-                </div>
+                {lastStroke ? (
+                  <div className="text-center">
+                    <div className="text-lg font-semibold text-hs-green-100 mb-1">
+                      {lastStroke.distance ? formatDistance(lastStroke.distance, playerProfile.preferredUnits) : 'N/A'}
+                    </div>
+                    <div className="text-hs-sand">
+                      {lastStroke.club || 'Club non défini'}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-hs-sand">
+                    {t('play.noShots')}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="scorecard">
-            <Card className="golf-card">
+            <Card className="border-hs-beige/50 bg-white/50">
               <CardHeader>
-                <CardTitle className="text-accent">Scorecard</CardTitle>
+                <CardTitle className="text-hs-green-900">{t('play.scorecard')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Scorecard 
-                  strokes={[]} 
+                  strokes={{}} 
                   currentHole={currentHole}
                   playerProfile={playerProfile}
                 />
@@ -244,42 +208,42 @@ const Play = ({ user, playerProfile, roundId, onBack, onQuitGame }: PlayProps) =
       </div>
 
       {/* Action Bar (Fixed Bottom) */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-hs-beige p-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-center gap-4">
             <Button
               size="lg"
-              onClick={handleAddStroke}
-              className="golf-gradient hover:golf-glow transition-golf min-w-[100px]"
+              onClick={addStroke}
+              className="bg-hs-green-100 hover:bg-hs-green-200 text-white min-w-[100px]"
             >
-              +1
+              {t('play.addStroke')}
             </Button>
 
             <Button
               variant="ghost"
               size="lg"
-              onClick={handleUndo}
-              disabled={totalStrokes === 0}
-              className="min-w-[100px]"
+              onClick={undoStroke}
+              disabled={strokes.length === 0}
+              className="min-w-[100px] text-hs-green-900"
             >
               <Undo className="w-5 h-5 mr-2" />
-              Undo
+              {t('play.undo')}
             </Button>
 
             <Button
               variant="secondary"
               size="lg"
-              onClick={handleFinishHole}
-              className="min-w-[100px]"
+              onClick={finishHole}
+              className="min-w-[100px] bg-hs-sand hover:bg-hs-sand/80 text-hs-ink"
             >
               <Flag className="w-5 h-5 mr-2" />
-              Finish
+              {t('play.finish')}
             </Button>
 
             <Button
               variant={isRecording ? "destructive" : "outline"}
               size="lg"
-              onClick={toggleMicrophone}
+              onClick={toggleVoiceRecording}
               className="min-w-[100px]"
             >
               {isRecording ? (
@@ -290,7 +254,7 @@ const Play = ({ user, playerProfile, roundId, onBack, onQuitGame }: PlayProps) =
               ) : (
                 <>
                   <Mic className="w-5 h-5 mr-2" />
-                  Mic
+                  {t('play.mic')}
                 </>
               )}
             </Button>
@@ -298,21 +262,17 @@ const Play = ({ user, playerProfile, roundId, onBack, onQuitGame }: PlayProps) =
         </div>
       </div>
 
-      {/* Coach Dialog */}
-      <Dialog open={coachOpen} onOpenChange={setCoachOpen}>
-        <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="text-accent">Coach IA</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-hidden">
-            <CoachChat 
-              user={user}
-              playerProfile={playerProfile}
-              onBack={() => setCoachOpen(false)}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Coach Overlay */}
+      {coachOpen && (
+        <CoachOverlay
+          user={user}
+          playerProfile={playerProfile}
+          currentHole={currentHole}
+          totalStrokes={currentHoleStrokes.length}
+          lastStrokes={lastStrokes}
+          onClose={() => setCoachOpen(false)}
+        />
+      )}
 
       {/* Bottom padding for action bar */}
       <div className="h-24"></div>
