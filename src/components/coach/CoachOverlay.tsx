@@ -171,59 +171,59 @@ export function CoachOverlay({
 
   return (
     <div className="fixed inset-0 bg-black/20 flex items-end justify-end p-4 z-50 pointer-events-none">
-      <div className="w-96 max-w-[90vw] bg-background border rounded-xl shadow-2xl animate-slide-in-up pointer-events-auto" style={{height: "80vh", maxHeight: "600px"}}>
+      <div className="w-96 max-w-[90vw] h-[600px] max-h-[85vh] bg-background border rounded-xl shadow-2xl animate-slide-in-up pointer-events-auto flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center gap-3">
-            <MessageCircle className="w-5 h-5 text-hs-green-100" />
-            <h2 className="text-lg font-semibold">Coach IA</h2>
+        <div className="flex items-center justify-between p-3 border-b flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="w-4 h-4 text-hs-green-100" />
+            <h2 className="text-base font-semibold">Coach IA</h2>
           </div>
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={onClose}
-            className="hover:bg-accent/10"
+            className="hover:bg-accent/10 h-8 w-8"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </Button>
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as 'coach' | 'rules')} className="flex flex-col h-full">
-          <TabsList className="grid w-full grid-cols-2 mx-4 mt-4">
-            <TabsTrigger value="coach" className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4" />
+        <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as 'coach' | 'rules')} className="flex flex-col flex-1 min-h-0">
+          <TabsList className="grid w-full grid-cols-2 mx-3 mt-3 h-9">
+            <TabsTrigger value="coach" className="flex items-center gap-1 text-xs">
+              <MessageCircle className="w-3 h-3" />
               Coach
             </TabsTrigger>
-            <TabsTrigger value="rules" className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
+            <TabsTrigger value="rules" className="flex items-center gap-1 text-xs">
+              <BookOpen className="w-3 h-3" />
               Règles
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="coach" className="flex-1 flex flex-col mt-0">
-            <div className="p-4 text-center text-sm text-muted-foreground border-b">
+          <TabsContent value="coach" className="flex-1 flex flex-col mt-0 min-h-0">
+            <div className="px-3 py-2 text-center text-xs text-muted-foreground border-b flex-shrink-0">
               Trou {currentHole} • {totalStrokes} coups • HCP {playerProfile.handicap}
             </div>
             
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-4">
+            <ScrollArea className="flex-1 p-3 min-h-0">
+              <div className="space-y-3">
                 {currentMessages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex gap-3 ${
+                    className={`flex gap-2 ${
                       message.isBot ? "justify-start" : "justify-end"
                     }`}
                   >
                     <div className={`max-w-[80%] ${
                       message.isBot ? "order-1" : "order-2"
                     }`}>
-                      <div className={`rounded-lg p-3 ${
+                      <div className={`rounded-lg p-2 ${
                         message.isBot
                           ? "bg-hs-beige text-hs-ink"
                           : "bg-hs-green-100 text-white"
                       }`}>
-                        <div className="text-sm whitespace-pre-wrap">
+                        <div className="text-xs whitespace-pre-wrap">
                           {message.text}
                         </div>
                       </div>
@@ -233,10 +233,10 @@ export function CoachOverlay({
                 
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-hs-beige rounded-lg p-3 flex items-center gap-2">
-                      <div className="w-2 h-2 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                      <div className="w-2 h-2 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                      <div className="w-2 h-2 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                    <div className="bg-hs-beige rounded-lg p-2 flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                      <div className="w-1.5 h-1.5 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                      <div className="w-1.5 h-1.5 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
                     </div>
                   </div>
                 )}
@@ -244,25 +244,25 @@ export function CoachOverlay({
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="rules" className="flex-1 flex flex-col mt-0">
-            <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-              <div className="space-y-4">
+          <TabsContent value="rules" className="flex-1 flex flex-col mt-0 min-h-0">
+            <ScrollArea className="flex-1 p-3 min-h-0" ref={scrollAreaRef}>
+              <div className="space-y-3">
                 {currentMessages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex gap-3 ${
+                    className={`flex gap-2 ${
                       message.isBot ? "justify-start" : "justify-end"
                     }`}
                   >
                     <div className={`max-w-[80%] ${
                       message.isBot ? "order-1" : "order-2"
                     }`}>
-                      <div className={`rounded-lg p-3 ${
+                      <div className={`rounded-lg p-2 ${
                         message.isBot
                           ? "bg-hs-beige text-hs-ink"
                           : "bg-hs-green-100 text-white"
                       }`}>
-                        <div className="text-sm whitespace-pre-wrap">
+                        <div className="text-xs whitespace-pre-wrap">
                           {message.text}
                         </div>
                       </div>
@@ -272,10 +272,10 @@ export function CoachOverlay({
                 
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-hs-beige rounded-lg p-3 flex items-center gap-2">
-                      <div className="w-2 h-2 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                      <div className="w-2 h-2 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                      <div className="w-2 h-2 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                    <div className="bg-hs-beige rounded-lg p-2 flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                      <div className="w-1.5 h-1.5 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                      <div className="w-1.5 h-1.5 bg-hs-green-100 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
                     </div>
                   </div>
                 )}
@@ -285,16 +285,16 @@ export function CoachOverlay({
 
           {/* Quick Suggestions */}
           {currentMessages.length <= 1 && (
-            <div className="p-4 border-t">
+            <div className="p-3 border-t flex-shrink-0">
               <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1">
                 {suggestions.map((suggestion, index) => (
                   <Button
                     key={index}
                     variant="outline"
                     size="sm"
                     onClick={() => sendMessage(suggestion)}
-                    className="text-xs h-7 px-3"
+                    className="text-xs h-6 px-2"
                   >
                     {suggestion}
                   </Button>
@@ -304,7 +304,7 @@ export function CoachOverlay({
           )}
 
           {/* Input Form */}
-          <div className="p-4 border-t">
+          <div className="p-3 border-t flex-shrink-0">
             <form onSubmit={handleSubmit} className="flex gap-2">
               <Input
                 ref={inputRef}
@@ -316,7 +316,7 @@ export function CoachOverlay({
                     : "Question sur les règles..."
                 }
                 disabled={isLoading}
-                className="flex-1"
+                className="flex-1 h-8 text-xs"
               />
               
               {onToggleVoiceRecording && (
@@ -325,19 +325,19 @@ export function CoachOverlay({
                   type="button"
                   size="sm" 
                   variant={isRecording ? "destructive" : "outline"}
-                  className="px-3"
+                  className="px-2 h-8 w-8"
                   disabled={isLoading}
                 >
-                  <Mic className={`w-4 h-4 ${isRecording ? 'animate-pulse' : ''}`} />
+                  <Mic className={`w-3 h-3 ${isRecording ? 'animate-pulse' : ''}`} />
                 </Button>
               )}
               <Button 
                 type="submit" 
                 size="sm" 
-                className="bg-hs-green-100 hover:bg-hs-green-200 text-white px-3"
+                className="bg-hs-green-100 hover:bg-hs-green-200 text-white px-2 h-8 w-8"
                 disabled={isLoading}
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-3 h-3" />
               </Button>
             </form>
           </div>
