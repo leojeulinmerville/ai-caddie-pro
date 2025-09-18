@@ -241,25 +241,23 @@ export function CoachOverlay({
               </div>
             </ScrollArea>
 
-            {/* Coach Suggestions */}
-            {messages.filter(msg => msg.mode === 'coach').length === 0 && (
-              <div className="p-3 border-t flex-shrink-0">
-                <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
-                <div className="flex flex-wrap gap-1">
-                  {["Quel club ?", "Stratégie vent", "Sortie bunker", "Putting"].map((suggestion, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => sendMessage(suggestion, 'coach')}
-                      className="text-xs h-6 px-2"
-                    >
-                      {suggestion}
-                    </Button>
-                  ))}
-                </div>
+            {/* Coach Suggestions - Always visible */}
+            <div className="p-3 border-t flex-shrink-0">
+              <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
+              <div className="flex flex-wrap gap-1">
+                {["Quel club ?", "Stratégie vent", "Sortie bunker", "Putting"].map((suggestion, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => sendMessage(suggestion, 'coach')}
+                    className="text-xs h-6 px-2"
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
               </div>
-            )}
+            </div>
           </TabsContent>
 
           {/* Rules Tab */}
@@ -301,25 +299,23 @@ export function CoachOverlay({
               </div>
             </ScrollArea>
 
-            {/* Rules Suggestions */}
-            {messages.filter(msg => msg.mode === 'rules').length === 0 && (
-              <div className="p-3 border-t flex-shrink-0">
-                <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
-                <div className="flex flex-wrap gap-1">
-                  {["Balle dans l'eau", "Procédure drop", "Obstruction"].map((suggestion, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => sendMessage(suggestion, 'rules')}
-                      className="text-xs h-6 px-2"
-                    >
-                      {suggestion}
-                    </Button>
-                  ))}
-                </div>
+            {/* Rules Suggestions - Always visible */}
+            <div className="p-3 border-t flex-shrink-0">
+              <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
+              <div className="flex flex-wrap gap-1">
+                {["Balle dans l'eau", "Procédure drop", "Obstruction"].map((suggestion, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => sendMessage(suggestion, 'rules')}
+                    className="text-xs h-6 px-2"
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
               </div>
-            )}
+            </div>
           </TabsContent>
 
 
