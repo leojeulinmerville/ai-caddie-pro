@@ -137,7 +137,7 @@ export default function StatsHistorySettings() {
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="text-hs-ink hover:text-hs-green-900">
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2 text-lime-600" />
             Retour
           </Button>
           <h1 className="text-3xl font-bold text-hs-green-900">Stats & Paramètres</h1>
@@ -145,7 +145,7 @@ export default function StatsHistorySettings() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3 bg-white">
-            <TabsTrigger value="stats" className="data-[state=active]:bg-hs-green-100 text-green-500">
+            <TabsTrigger value="stats" className="data-[state=active]:bg-hs-green-100 data-[state=active]:text-white">
               <BarChart3 className="w-4 h-4 mr-2" />
               Stats
             </TabsTrigger>
