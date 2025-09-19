@@ -7,7 +7,6 @@
 ╚═╝  ╚═╝╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝ ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝╚═╝  ╚═╝╚═╝
 ```                                                                                  
 
-
 # HighSwing.ai 🏌️‍♂️ - Votre Caddie IA Personnel
 
 Bienvenue sur le dépôt de **HighSwing.ai**, un projet innovant né lors du hackathon **aivancity "AI for Sports"**. Notre mission : rendre le golf plus accessible, stratégique et amusant grâce à un assistant IA personnel qui tient dans votre poche.
@@ -28,17 +27,24 @@ Nous avons développé cette solution en 2 jours pour le hackathon, en nous conc
 
 *   🧠 **Coach Stratégique IA** : Recevez des conseils personnalisés sur le choix du club, la stratégie de jeu pour un trou spécifique et la technique, basés sur votre niveau.
 *   ⚖️ **Copilot des Règles** : Une question sur une situation de jeu complexe ? Notre IA, entraînée sur les règles officielles, vous donne une réponse claire et la procédure à suivre.
-*    scorecard **Compteur de Score Intelligent** : Enregistrez vos coups d'un simple clic ou par la voix. Fini le crayon et le papier, concentrez-vous sur votre jeu !
+*   **Compteur de Score Intelligent** : Enregistrez vos coups d'un simple clic ou par la voix. Fini le crayon et le papier, concentrez-vous sur votre jeu !
 *   🎤 **Commande Vocale** : Gardez les mains sur vos clubs. Dites simplement "play" pour ajouter un coup ou "finish" pour terminer le trou.
 *   📍 **Suivi GPS** : Chaque coup est enregistré avec vos coordonnées GPS pour une analyse future de vos performances.
 
-## ⚙️ Comment ça Marche ? (Architecture)
+## ⚙️ Comment ça Marche ? (Architecture & Stack Technique)
 
 HighSwing.ai est construit sur une stack technologique moderne et serverless pour garantir rapidité et scalabilité.
 
-*   **Frontend** : Une interface utilisateur réactive et élégante développée avec **React**, **TypeScript** et **Vite**. Les composants sont propulsés par **shadcn-ui** et stylisés avec **Tailwind CSS**.
-*   **Backend & Base de Données** : Nous utilisons **Supabase** comme notre backend-as-a-service pour la gestion des utilisateurs (Auth), la base de données (PostgreSQL) et les fonctions serverless.
-*   **L'Intelligence Artificielle** : Le cœur du projet réside dans deux fonctions serverless (Edge Functions) sur Supabase :
+*   **Frontend** : Une interface utilisateur réactive et élégante développée avec :
+    *   **Framework** : React (avec Vite)
+    *   **Langage** : TypeScript
+    *   **Composants UI** : shadcn-ui
+    *   **Styling** : Tailwind CSS
+*   **Backend & Base de Données** : Nous utilisons **Supabase** comme notre backend-as-a-service pour :
+    *   **Authentification** : Gestion des utilisateurs et des sessions.
+    *   **Base de données** : PostgreSQL pour stocker les profils, les parties et les coups.
+    *   **Fonctions Serverless** : Edge Functions pour l'exécution de la logique IA.
+*   **L'Intelligence Artificielle** : Le cœur du projet réside dans deux fonctions serverless sur Supabase :
     1.  **`voice-to-text`** : L'audio capturé depuis le micro du client est envoyé à cette fonction, qui utilise l'API **OpenAI Whisper** pour une transcription ultra-rapide et précise.
     2.  **`ai-coach`** : Le texte de l'utilisateur (transcrit ou tapé) est envoyé à cette fonction. Selon le mode choisi ("Coach" ou "Règles"), un *prompt système* spécifique est envoyé à l'API **OpenAI GPT-4o Mini** pour générer une réponse pertinente et contextuelle.
 
@@ -59,7 +65,7 @@ Pour lancer le projet en local sur votre machine, suivez ces étapes :
 
 2.  **Naviguez dans le dossier du projet :**
     ```sh
-    cd HACKATHON
+    cd <nom-du-dossier-clone>
     ```
 
 3.  **Installez les dépendances :**
@@ -68,13 +74,13 @@ Pour lancer le projet en local sur votre machine, suivez ces étapes :
     ```
 
 4.  **Configurez les variables d'environnement :**
-    Créez un fichier `.env.local` à la racine du projet en vous basant sur le modèle ci-dessous. Vous trouverez ces clés dans le dashboard de votre projet Supabase.
+    Créez un fichier `.env.local` à la racine du projet en vous basant sur le modèle ci-dessous. Vous trouverez ces clés dans le dashboard de votre projet Supabase (`Settings > API`).
 
     ```env
     VITE_SUPABASE_URL="https://votresuperbeurl.supabase.co"
     VITE_SUPABASE_ANON_KEY="votreclepubliqueanon.eyJ..."
     ```
-    > **Note** : Les fonctions Supabase (`ai-coach` et `voice-to-text`) nécessitent une variable d'environnement `OPENAI_API_KEY` configurée directement dans les paramètres de votre projet Supabase.
+    > **Note** : Les fonctions Supabase (`ai-coach` et `voice-to-text`) nécessitent une variable d'environnement `OPENAI_API_KEY` configurée directement dans les paramètres de votre projet Supabase (`Settings > Edge Functions`).
 
 5.  **Lancez le serveur de développement :**
     ```sh
@@ -89,9 +95,9 @@ Ce projet a été imaginé et développé avec passion par une équipe d'étudia
 
 *   **Antoine LOYAU-TULASNE**
 *   **Celian FAUCILLE**
-*   **Ethan ORAIN**
-*   **Jérémie ONDZAGHE**
-*   **Léo MERVILLE**
+*   **Ethan Orain**
+*   **Jérémie Ondzaghe**
+*   **Léo Merville**
 
 ## 🔮 Futures Améliorations
 
