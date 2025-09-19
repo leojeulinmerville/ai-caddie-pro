@@ -11,7 +11,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Flag, Edit3, MapPin, Clock } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Stroke {
   id: string;
@@ -34,14 +34,9 @@ interface ScorecardProps {
   strokes: Record<number, Stroke[]>;
   currentHole: number;
   playerProfile: PlayerData;
-  courseData?: {
-    pars: number[];
-    handicaps: number[];
-  };
-  roundId: string;
 }
 
-export function Scorecard({ strokes, currentHole, playerProfile, courseData, roundId }: ScorecardProps) {
+export function Scorecard({ strokes, currentHole, playerProfile }: ScorecardProps) {
   const [editingHole, setEditingHole] = useState<number | null>(null);
   
   // Standard course data (par 72)
@@ -56,56 +51,8 @@ export function Scorecard({ strokes, currentHole, playerProfile, courseData, rou
   const getBackNineTotal = () => 
     Array.from({length: 9}, (_, i) => getHoleScore(i + 10)).reduce((a, b) => a + b, 0);
   
-  const getPlayedHoles = () => {
-    return Object.keys(strokes).filter(hole => strokes[parseInt(hole)].length > 0).length;
-  };
-
-  const getTotalScore = () => {
-    return Object.values(strokes).flat().length;
-  };
-
-  const getScoreVsPar = () => {
-    const playedHoles = getPlayedHoles();
-    if (playedHoles === 0) return 0;
-
-    const totalStrokes = getTotalScore();
-    const parForPlayedHoles = Object.keys(strokes)
-      .filter(hole => strokes[parseInt(hole)].length > 0)
-      .reduce((total, hole) => total + coursePars[parseInt(hole) - 1], 0);
-
-    return totalStrokes - parForPlayedHoles;
-  };
-
-  const getAveragePerHole = () => {
-    const playedHoles = getPlayedHoles();
-    if (playedHoles === 0) return 0;
-    return (getTotalScore() / playedHoles);
-  };
-
-  // Charger les statistiques depuis Supabase
-  useEffect(() => {
-    const loadRoundStats = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('rounds')
-          .select(`
-            *,
-            strokes(*)
-          `)
-          .eq('id', roundId)
-          .single();
-
-        if (error) throw error;
-        setRoundStats(data);
-      } catch (error) {
-        console.error('Error loading round stats:', error);
-      }
-    };
-
-    if (roundId) {
-      loadRoundStats();
-    }
-  }, [roundId, strokes]); // Re-charger quand les strokes changent
+  const getTotalScore = () => getFrontNineTotal() + getBackNineTotal();
+  const getTotalPar = () => coursePars.reduce((a, b) => a + b, 0);
 
   const getScoreColor = (score: number, par: number) => {
     const diff = score - par;
@@ -163,63 +110,37 @@ export function Scorecard({ strokes, currentHole, playerProfile, courseData, rou
     </TableRow>
   );
 
-  // Mise à jour des statistiques en temps réel
-  const updateRoundStats = useCallback(async () => {
-    try {
-      const totalStrokes = getTotalScore();
-      const { error } = await supabase
-        .from('rounds')
-        .update({
-          total_strokes: totalStrokes,
-        })
-        .eq('id', roundId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error updating round stats:', error);
-    }
-  }, [roundId, strokes]);
-
-  // Mettre à jour les stats quand les strokes changent
-  useEffect(() => {
-    updateRoundStats();
-  }, [updateRoundStats]);
-
   return (
     <div className="space-y-6">
-      {/* Summary Cards avec données en temps réel */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="golf-card">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">
-              {getTotalScore()}
-            </div>
+            <div className="text-2xl font-bold text-primary">{getTotalScore()}</div>
             <div className="text-sm text-muted-foreground">Total Coups</div>
           </CardContent>
         </Card>
-
-        <Card>
+        
+        <Card className="golf-card">
           <CardContent className="p-4 text-center">
-            <div className={`text-2xl font-bold ${getScoreVsPar() > 0 ? 'text-red-600' : getScoreVsPar() < 0 ? 'text-green-600' : 'text-foreground'}`}>
-              {getScoreVsPar() > 0 ? '+' : ''}{getScoreVsPar() || '-'}
+            <div className="text-2xl font-bold text-primary">
+              {getTotalScore() > 0 ? (getTotalScore() - getTotalPar() > 0 ? '+' : '') + (getTotalScore() - getTotalPar()) : '-'}
             </div>
             <div className="text-sm text-muted-foreground">vs Par</div>
           </CardContent>
         </Card>
-
-        <Card>
+        
+        <Card className="golf-card">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">
-              {getPlayedHoles()}
-            </div>
+            <div className="text-2xl font-bold text-primary">{currentHole - 1}</div>
             <div className="text-sm text-muted-foreground">Trous Joués</div>
           </CardContent>
         </Card>
-
-        <Card>
+        
+        <Card className="golf-card">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-primary">
-              {getPlayedHoles() > 0 ? getAveragePerHole().toFixed(1) : '-'}
+              {getTotalScore() > 0 ? (getTotalScore() / Math.max(1, currentHole - 1)).toFixed(1) : '-'}
             </div>
             <div className="text-sm text-muted-foreground">Moy./Trou</div>
           </CardContent>
@@ -239,7 +160,7 @@ export function Scorecard({ strokes, currentHole, playerProfile, courseData, rou
             <TableHeader>
               <TableRow>
                 <TableHead className="w-20"></TableHead>
-                {Array.from({ length: 9 }, (_, i) => (
+                {Array.from({length: 9}, (_, i) => (
                   <TableHead key={i + 1} className="text-center w-12 p-1">
                     {i + 1}
                   </TableHead>
@@ -257,7 +178,7 @@ export function Scorecard({ strokes, currentHole, playerProfile, courseData, rou
                   {coursePars.slice(0, 9).reduce((a, b) => a + b, 0)}
                 </TableCell>
               </TableRow>
-
+              
               <TableRow className="bg-muted/20">
                 <TableCell className="font-medium text-xs">HCP</TableCell>
                 {courseHcp.slice(0, 9).map((hcp, i) => (
@@ -265,8 +186,8 @@ export function Scorecard({ strokes, currentHole, playerProfile, courseData, rou
                 ))}
                 <TableCell className="text-center">-</TableCell>
               </TableRow>
-
-              {renderHoleRow(Array.from({ length: 9 }, (_, i) => i + 1), "SCORE")}
+              
+              {renderHoleRow(Array.from({length: 9}, (_, i) => i + 1), "SCORE")}
             </TableBody>
           </Table>
 
@@ -275,7 +196,7 @@ export function Scorecard({ strokes, currentHole, playerProfile, courseData, rou
             <TableHeader>
               <TableRow>
                 <TableHead className="w-20"></TableHead>
-                {Array.from({ length: 9 }, (_, i) => (
+                {Array.from({length: 9}, (_, i) => (
                   <TableHead key={i + 10} className="text-center w-12 p-1">
                     {i + 10}
                   </TableHead>
@@ -293,7 +214,7 @@ export function Scorecard({ strokes, currentHole, playerProfile, courseData, rou
                   {coursePars.slice(9).reduce((a, b) => a + b, 0)}
                 </TableCell>
               </TableRow>
-
+              
               <TableRow className="bg-muted/20">
                 <TableCell className="font-medium text-xs">HCP</TableCell>
                 {courseHcp.slice(9).map((hcp, i) => (
@@ -301,8 +222,8 @@ export function Scorecard({ strokes, currentHole, playerProfile, courseData, rou
                 ))}
                 <TableCell className="text-center">-</TableCell>
               </TableRow>
-
-              {renderHoleRow(Array.from({ length: 9 }, (_, i) => i + 10), "SCORE", true)}
+              
+              {renderHoleRow(Array.from({length: 9}, (_, i) => i + 10), "SCORE", true)}
             </TableBody>
           </Table>
 
@@ -341,9 +262,9 @@ export function Scorecard({ strokes, currentHole, playerProfile, courseData, rou
                     <Badge variant="outline">Coup {index + 1}</Badge>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Clock className="w-3 h-3" />
-                      {stroke.timestamp.toLocaleTimeString('fr-FR', {
-                        hour: '2-digit',
-                        minute: '2-digit'
+                      {stroke.timestamp.toLocaleTimeString('fr-FR', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
                       })}
                     </div>
                   </div>
