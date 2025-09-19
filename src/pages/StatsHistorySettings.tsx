@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, BarChart3, Calendar, Settings, Filter } from 'lucide-react';
-
 interface ClubStats {
   club: string;
   count: number;
@@ -19,7 +18,6 @@ interface ClubStats {
   max: number;
   recent20: boolean;
 }
-
 interface Round {
   id: string;
   started_at: string;
@@ -28,34 +26,34 @@ interface Round {
   selection: string;
   status: string;
 }
-
 export default function StatsHistorySettings() {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { language, changeLanguage } = useI18n();
+  const {
+    toast
+  } = useToast();
+  const {
+    language,
+    changeLanguage
+  } = useI18n();
   const [activeTab, setActiveTab] = useState('stats');
   const [clubStats, setClubStats] = useState<ClubStats[]>([]);
   const [rounds, setRounds] = useState<Round[]>([]);
   const [filter, setFilter] = useState<'7d' | '30d' | 'all'>('all');
   const [loading, setLoading] = useState(true);
   const [units, setUnits] = useState<'m' | 'yd'>('m');
-
   useEffect(() => {
     loadData();
   }, [user, filter]);
-
   const loadData = async () => {
     if (!user) return;
-
     try {
       // Load rounds
-      let roundsQuery = supabase
-        .from('rounds')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'completed')
-        .order('ended_at', { ascending: false });
+      let roundsQuery = supabase.from('rounds').select('*').eq('user_id', user.id).eq('status', 'completed').order('ended_at', {
+        ascending: false
+      });
 
       // Apply date filter
       if (filter === '7d') {
@@ -67,45 +65,44 @@ export default function StatsHistorySettings() {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         roundsQuery = roundsQuery.gte('ended_at', thirtyDaysAgo.toISOString());
       }
-
-      const { data: roundsData, error: roundsError } = await roundsQuery;
+      const {
+        data: roundsData,
+        error: roundsError
+      } = await roundsQuery;
       if (roundsError) throw roundsError;
-
       setRounds(roundsData || []);
 
       // Load club statistics
       const roundIds = roundsData?.map(r => r.id) || [];
       if (roundIds.length > 0) {
-        const { data: strokesData, error: strokesError } = await supabase
-          .from('strokes')
-          .select('club, distance')
-          .in('round_id', roundIds)
-          .not('club', 'is', null)
-          .not('distance', 'is', null);
-
+        const {
+          data: strokesData,
+          error: strokesError
+        } = await supabase.from('strokes').select('club, distance').in('round_id', roundIds).not('club', 'is', null).not('distance', 'is', null);
         if (strokesError) throw strokesError;
 
         // Process club statistics
-        const clubMap = new Map<string, { distances: number[]; count: number }>();
-        
+        const clubMap = new Map<string, {
+          distances: number[];
+          count: number;
+        }>();
         strokesData?.forEach(stroke => {
           if (!stroke.club || !stroke.distance) return;
-          
           if (!clubMap.has(stroke.club)) {
-            clubMap.set(stroke.club, { distances: [], count: 0 });
+            clubMap.set(stroke.club, {
+              distances: [],
+              count: 0
+            });
           }
-          
           const clubData = clubMap.get(stroke.club)!;
           clubData.distances.push(stroke.distance);
           clubData.count++;
         });
-
         const stats: ClubStats[] = Array.from(clubMap.entries()).map(([club, data]) => {
           const distances = data.distances;
           const average = distances.reduce((sum, d) => sum + d, 0) / distances.length;
           const min = Math.min(...distances);
           const max = Math.max(...distances);
-          
           return {
             club,
             count: data.count,
@@ -115,7 +112,6 @@ export default function StatsHistorySettings() {
             recent20: data.count >= 20
           };
         }).sort((a, b) => b.average - a.average);
-
         setClubStats(stats);
       } else {
         setClubStats([]);
@@ -125,30 +121,22 @@ export default function StatsHistorySettings() {
       toast({
         title: "Erreur",
         description: "Impossible de charger les données",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const formatDistance = (distance: number) => {
     if (units === 'yd') {
       return `${Math.round(distance * 1.09361)} yd`;
     }
     return `${distance} m`;
   };
-
-  return (
-    <div className="p-6 bg-hs-beige min-h-screen">
+  return <div className="p-6 bg-hs-beige min-h-screen">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/dashboard')}
-            className="text-hs-ink hover:text-hs-green-900"
-          >
+          <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="text-hs-ink hover:text-hs-green-900">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour
           </Button>
@@ -157,7 +145,7 @@ export default function StatsHistorySettings() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3 bg-white">
-            <TabsTrigger value="stats" className="data-[state=active]:bg-hs-green-100 data-[state=active]:text-white">
+            <TabsTrigger value="stats" className="data-[state=active]:bg-hs-green-100 text-green-500">
               <BarChart3 className="w-4 h-4 mr-2" />
               Stats
             </TabsTrigger>
@@ -187,13 +175,10 @@ export default function StatsHistorySettings() {
               </Select>
             </div>
 
-            {loading ? (
-              <div className="text-center py-8">
+            {loading ? <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-hs-green-100 mx-auto mb-4"></div>
                 <p className="text-hs-ink">Chargement des statistiques...</p>
-              </div>
-            ) : clubStats.length === 0 ? (
-              <Card className="bg-white border-hs-sand/20">
+              </div> : clubStats.length === 0 ? <Card className="bg-white border-hs-sand/20">
                 <CardContent className="py-8 text-center">
                   <BarChart3 className="w-12 h-12 mx-auto mb-4 text-hs-sand opacity-50" />
                   <p className="text-hs-sand">Aucune donnée disponible</p>
@@ -201,20 +186,15 @@ export default function StatsHistorySettings() {
                     Jouez quelques parties pour voir vos statistiques
                   </p>
                 </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {clubStats.map((stat) => (
-                  <Card key={stat.club} className="bg-white border-hs-sand/20">
+              </Card> : <div className="grid gap-4">
+                {clubStats.map(stat => <Card key={stat.club} className="bg-white border-hs-sand/20">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <h3 className="font-semibold text-hs-green-900">{stat.club}</h3>
-                          {stat.recent20 && (
-                            <Badge className="bg-hs-green-100 text-white text-xs">
+                          {stat.recent20 && <Badge className="bg-hs-green-100 text-white text-xs">
                               Derniers 20
-                            </Badge>
-                          )}
+                            </Badge>}
                         </div>
                         <div className="text-right">
                           <div className="text-lg font-semibold text-hs-green-900">
@@ -231,26 +211,20 @@ export default function StatsHistorySettings() {
                         <span>Max: {formatDistance(stat.max)}</span>
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                  </Card>)}
+              </div>}
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">
             <h2 className="text-xl font-semibold text-hs-green-900">Historique des parties</h2>
             
-            {rounds.length === 0 ? (
-              <Card className="bg-white border-hs-sand/20">
+            {rounds.length === 0 ? <Card className="bg-white border-hs-sand/20">
                 <CardContent className="py-8 text-center">
                   <Calendar className="w-12 h-12 mx-auto mb-4 text-hs-sand opacity-50" />
                   <p className="text-hs-sand">Aucune partie terminée</p>
                 </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {rounds.map((round) => (
-                  <Card key={round.id} className="bg-white border-hs-sand/20">
+              </Card> : <div className="grid gap-4">
+                {rounds.map(round => <Card key={round.id} className="bg-white border-hs-sand/20">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
@@ -262,19 +236,13 @@ export default function StatsHistorySettings() {
                             Terminée le {round.ended_at ? new Date(round.ended_at).toLocaleDateString('fr-FR') : '-'}
                           </p>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-hs-green-100 text-hs-green-100 hover:bg-hs-green-100 hover:text-white"
-                        >
+                        <Button variant="outline" size="sm" className="border-hs-green-100 text-hs-green-100 hover:bg-hs-green-100 hover:text-white">
                           Voir détails
                         </Button>
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                  </Card>)}
+              </div>}
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
@@ -336,6 +304,5 @@ export default function StatsHistorySettings() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 }
