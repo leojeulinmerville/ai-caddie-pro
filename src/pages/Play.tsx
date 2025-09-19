@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +29,43 @@ interface Round {
   total_strokes: number;
 }
 
+interface StrokeSimple {
+  id: string;
+  hole_local_idx: number;
+  distance?: number;
+  club?: string;
+  latitude?: number;
+  longitude?: number;
+  accuracy?: number;
+  created_at?: string;
+}
+
+// Local type shaped for the Scorecard component (timestamp optional)
+interface ScorecardStroke {
+  id: string;
+  hole_local_idx: number;
+  distance?: number;
+  club?: string;
+  latitude?: number;
+  longitude?: number;
+  accuracy?: number;
+  created_at?: string;
+  timestamp: Date;
+  lat?: number;
+  lon?: number;
+}
+
+interface RawStroke {
+  id: string;
+  hole_local_idx: number;
+  distance?: number;
+  club?: string;
+  latitude?: number;
+  longitude?: number;
+  accuracy?: number;
+  created_at?: string;
+}
+
 export default function Play() {
   const { roundId } = useParams<{ roundId: string }>();
   const { user } = useAuth();
@@ -41,27 +78,44 @@ export default function Play() {
   const [activeTab, setActiveTab] = useState('game');
   const [elapsedTime, setElapsedTime] = useState('00:00');
 
-  const gameLogic = useGameLogic({ 
+  // Ajouter un état pour les données de cours et profil joueur
+  const [courseData, setCourseData] = useState(null);
+  const [playerProfile, setPlayerProfile] = useState(null);
+
+  // Fonction pour charger les données du cours et du profil
+  const loadAdditionalData = useCallback(async () => {
+    if (!round || !user) return;
+
+    try {
+      // Charger les données du cours (pars, handicaps)
+      const { data: course, error: courseError } = await supabase
+        .from('courses')
+        .select('*')
+        .eq('id', round.course_id)
+        .single();
+
+      if (courseError) throw courseError;
+
+      // Charger le profil joueur
+      const { data: profile, error: profileError } = await supabase
+        .from('player_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') throw profileError;
+
+      setCourseData(course);
+      setPlayerProfile(profile);
+    } catch (error) {
+      console.error('Error loading additional data:', error);
+    }
+  }, [round, user]);
+
+  const gameLogic = useGameLogic({
     roundId: roundId || '',
-    accuracyThreshold: 15 
+    accuracyThreshold: 15
   });
-
-  useEffect(() => {
-    console.log('Play useEffect triggered:', { roundId, user: !!user });
-    
-    if (!roundId) {
-      // No roundId provided, redirect to dashboard
-      setLoading(false);
-      navigate('/dashboard');
-      return;
-    }
-
-    if (user) {
-      // Both roundId and user are available, load the round
-      loadRound();
-    }
-    // If user is not available yet, keep loading and wait for it
-  }, [roundId, user]);
 
   // Timer effect
   useEffect(() => {
@@ -79,9 +133,9 @@ export default function Play() {
     return () => clearInterval(interval);
   }, [round]);
 
-  const loadRound = async () => {
+  const loadRound = useCallback(async () => {
     console.log('loadRound called:', { roundId, user: !!user });
-    
+
     if (!roundId || !user) {
       console.log('loadRound: missing roundId or user, returning');
       return;
@@ -128,7 +182,36 @@ export default function Play() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [roundId, user, toast, navigate]);
+
+  // Lorsque l'utilisateur est disponible, charger la partie ou les données additionnelles
+  useEffect(() => {
+    console.log('Play useEffect triggered (moved):', { roundId, user: !!user });
+
+    if (!roundId) {
+      // No roundId provided, redirect to dashboard
+      setLoading(false);
+      navigate('/dashboard');
+      return;
+    }
+
+    if (user) {
+      if (!round) {
+        loadRound();
+      } else {
+        loadAdditionalData();
+      }
+    }
+  }, [roundId, user, loadRound, loadAdditionalData, navigate, round]);
+
+  useEffect(() => {
+    if (round && round.status === 'completed') {
+      // Afficher un modal de félicitations ou rediriger
+      setTimeout(() => {
+        navigate('/stats', { state: { completedRound: round } });
+      }, 3000);
+    }
+  }, [round, navigate]);
 
   const handleQuitGame = async () => {
     if (!round) return;
@@ -280,18 +363,33 @@ export default function Play() {
           
           <TabsContent value="scorecard" className="flex-1 mt-0">
             <Scorecard
-              strokes={gameLogic.strokes.reduce((acc: Record<number, any[]>, stroke: any) => {
-                if (!acc[stroke.hole_index]) acc[stroke.hole_index] = [];
-                acc[stroke.hole_index].push(stroke);
+              strokes={gameLogic.strokes.reduce((acc: Record<number, ScorecardStroke[]>, rawStroke: RawStroke) => {
+                // Map DB stroke shape to Scorecard expected shape
+                const s: ScorecardStroke = {
+                  id: rawStroke.id,
+                  hole_local_idx: rawStroke.hole_local_idx,
+                  distance: rawStroke.distance,
+                  club: rawStroke.club,
+                  created_at: rawStroke.created_at,
+                  timestamp: rawStroke.created_at ? new Date(rawStroke.created_at) : new Date(),
+                  lat: rawStroke.latitude,
+                  lon: rawStroke.longitude,
+                  accuracy: rawStroke.accuracy ?? 0,
+                };
+
+                if (!acc[s.hole_local_idx]) acc[s.hole_local_idx] = [];
+                acc[s.hole_local_idx].push(s);
                 return acc;
               }, {})}
               currentHole={gameLogic.currentHole}
+              courseData={courseData}
+              roundId={roundId}
               playerProfile={{
-                firstName: user?.user_metadata?.full_name?.split(' ')[0] || "Joueur",
-                lastName: user?.user_metadata?.full_name?.split(' ')[1] || "",
-                handicap: 18,
-                preferredUnits: 'm',
-                language: 'fr'
+                firstName: playerProfile?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || "Joueur",
+                lastName: playerProfile?.last_name || user?.user_metadata?.full_name?.split(' ')[1] || "",
+                handicap: playerProfile?.index_handicap || 18,
+                preferredUnits: (playerProfile?.preferred_units as "m" | "yd") || 'm',
+                language: (playerProfile?.language as "fr" | "en") || 'fr'
               }}
             />
           </TabsContent>
