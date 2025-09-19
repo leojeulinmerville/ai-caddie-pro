@@ -41,6 +41,22 @@ export default function Play() {
   const [activeTab, setActiveTab] = useState('game');
   const [elapsedTime, setElapsedTime] = useState('00:00');
 
+  const [strokesByHole, setStrokesByHole] = useState<Record<number, Stroke[]>>({});
+
+  const addStroke = async () => {
+    setStrokesByHole(prev => {
+      const holeStrokes = prev[currentHole] || [];
+      const newStroke: Stroke = {
+        id: crypto.randomUUID(),
+        hole_local_idx: currentHole,
+        created_at: new Date().toISOString(),
+      };
+      return {
+        ...prev,
+        [currentHole]: [...holeStrokes, newStroke],
+      };
+    });
+
   const gameLogic = useGameLogic({ 
     roundId: roundId || '',
     accuracyThreshold: 15 
@@ -279,20 +295,11 @@ export default function Play() {
           </TabsContent>
           
           <TabsContent value="scorecard" className="flex-1 mt-0">
-            <Scorecard
-              strokes={gameLogic.strokes.reduce((acc: Record<number, any[]>, stroke: any) => {
-                if (!acc[stroke.hole_index]) acc[stroke.hole_index] = [];
-                acc[stroke.hole_index].push(stroke);
-                return acc;
-              }, {})}
-              currentHole={gameLogic.currentHole}
-              playerProfile={{
-                firstName: user?.user_metadata?.full_name?.split(' ')[0] || "Joueur",
-                lastName: user?.user_metadata?.full_name?.split(' ')[1] || "",
-                handicap: 18,
-                preferredUnits: 'm',
-                language: 'fr'
-              }}
+            <Scorecard 
+              strokes={strokesByHole} 
+              currentHole={currentHole} 
+              playerProfile={playerProfile}
+              onAddStroke={() => addStroke()}
             />
           </TabsContent>
         </Tabs>
