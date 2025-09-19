@@ -11,7 +11,7 @@
 
 Bienvenue sur le dépôt de **HighSwing.ai**, un projet innovant né lors du hackathon **aivancity "AI for Sports"**. Notre mission : rendre le golf plus accessible, stratégique et amusant grâce à un assistant IA personnel qui tient dans votre poche.
 
-https://github.com/user-attachments/assets/078f2db1-29d3-4255-b96d-c2ce5fcb367c
+https://github.com/user-attachments/assets/acd50f54-9c1e-42cc-9cf0-2b5e4d8e559b
 
 ## 🎯 Le Problème
 
